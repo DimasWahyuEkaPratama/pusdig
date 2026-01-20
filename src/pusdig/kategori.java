@@ -5,18 +5,80 @@
  */
 package pusdig;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 /**
  *
  * @author HP
  */
 public class kategori extends javax.swing.JFrame {
-
+    
     /**
      * Creates new form kategori
      */
+      Connection conn = null;
+    ResultSet rs =null;
+    PreparedStatement pst = null;
+    
+    private DefaultTableModel model;
+    private String sql;
+    
+    
     public kategori() {
         initComponents();
+        setLocationRelativeTo(this);
+        conn = Koneksi.Koneksi.KoneksiDB();
+
+        model = new DefaultTableModel();
+        jTable1.setModel(model);
+
+        // Tambahkan kolom tabel
+        model.addColumn("Kategori_Id");
+        model.addColumn("Name_Kategori");
+        model.addColumn("Created_At");
+        getData();
     }
+    
+     void getData() {
+        model.getDataVector().removeAllElements();
+        model.fireTableDataChanged();
+
+        try {
+            String sql = "SELECT * FROM kategori";
+            pst = conn.prepareStatement(sql);
+            rs = pst.executeQuery();
+            NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
+
+            while (rs.next()) {
+                Object[] obj = new Object[5]; // sesuai jumlah kolom
+                obj[0] = rs.getString("Kategori_Id");
+                obj[1] = rs.getString("Name_Kategori");
+                obj[2] = rs.getDate("Created_At");
+                model.addRow(obj);
+        }
+     } catch (Exception e) {
+         JOptionPane.showMessageDialog(null, e);
+     }
+ }
+
+    void pilihData() {
+        int i = jTable1.getSelectedRow();
+            id.setText(model.getValueAt(i, 0).toString());
+            nama.setText(model.getValueAt(i, 1).toString());
+        }
+ 
+    void bersih() {
+        id.setText("");
+        nama.setText("");
+    }
+  
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -27,21 +89,147 @@ public class kategori extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jLabel1 = new javax.swing.JLabel();
+        id = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        nama = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        tgl = new com.toedter.calendar.JDateChooser();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        jLabel1.setText("Id Kategori :");
+
+        jLabel2.setText("Nama Kategori :");
+
+        jLabel3.setText("Tanggal :");
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(jTable1);
+
+        jButton1.setText("Simpan");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jButton2.setText("Update");
+
+        jButton3.setText("Refresh");
+
+        jButton4.setText("Delete");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(438, 438, 438)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(tgl, javax.swing.GroupLayout.DEFAULT_SIZE, 327, Short.MAX_VALUE)
+                            .addComponent(jLabel3)
+                            .addComponent(nama)
+                            .addComponent(jLabel2)
+                            .addComponent(id)
+                            .addComponent(jLabel1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 99, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton1)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton2)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton4)
+                        .addGap(70, 70, 70)))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(46, 46, 46))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(207, 207, 207)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(id, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nama, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(27, 27, 27)
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(tgl, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(51, 51, 51)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1)
+                    .addComponent(jButton2)
+                    .addComponent(jButton3)
+                    .addComponent(jButton4))
+                .addContainerGap(133, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(87, 87, 87))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        // TODO add your handling code here:
+        pilihData();
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        String pusdig = "yyyy-MM-dd";
+        SimpleDateFormat fm = new SimpleDateFormat(pusdig);
+        String Created_At = String.valueOf(fm.format(tgl.getDate()));
+        
+         try {
+    String sql = "INSERT INTO kategori (Kategori_Id, Name_Kategori, Created_At) VALUES (?, ?, ?)";
+    pst = conn.prepareStatement(sql);
+
+    pst.setString(1, id.getText());
+    pst.setString(2, nama.getText()); 
+    pst.setString(3, Created_At); 
+   
+    pst.execute();
+    JOptionPane.showMessageDialog(null, "Data berhasil disimpan!");
+} catch (Exception e) { 
+    JOptionPane.showMessageDialog(null, "Gagal menyimpan Data: " + e);
+}
+       
+    
+    getData();
+    bersih();
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -79,5 +267,17 @@ public class kategori extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField id;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable jTable1;
+    private javax.swing.JTextField nama;
+    private com.toedter.calendar.JDateChooser tgl;
     // End of variables declaration//GEN-END:variables
 }
