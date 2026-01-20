@@ -5,7 +5,7 @@ tugas kelompok untuk bagian isi codingan / data, yg sudah di rencanakan bersama
 
 > NOTE: HELLO
 
-### *TANKS FOR OUR COLLABORATORS*
+### *THANKS FOR OUR COLLABORATORS*
 ![file](https://github.com/user-attachments/assets/5ffa732b-9173-4bd8-8925-e7c9f78f1cbe)
 
 <details>
