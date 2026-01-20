@@ -249,7 +249,23 @@ public class registrasi extends javax.swing.JFrame {
     }//GEN-LAST:event_telpActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-         
+    // 🔴 VALIDASI FIELD WAJIB (SESUI DB)
+if (usernameTxt.getText().trim().isEmpty() ||
+    jPasswordField1.getPassword().length == 0 ||
+    namalengkap.getText().trim().isEmpty() ||
+    telp.getText().trim().isEmpty() ||
+    cmb_role.getSelectedItem() == null ||
+    cmb_status.getSelectedItem() == null) {
+
+    JOptionPane.showMessageDialog(
+        null,
+        "Username, Password, Nama Lengkap, Telp, Role, dan Status WAJIB diisi!",
+        "Peringatan",
+        JOptionPane.WARNING_MESSAGE
+    );
+    return; // ⛔ STOP SIMPAN
+}     
+        
           try{
            String sql = "insert into user (username,password,fullname,role,telp,status,alamat)values(?,?,?,?,?,?,?)";
            pst = conn.prepareStatement(sql);
@@ -266,6 +282,11 @@ public class registrasi extends javax.swing.JFrame {
            JOptionPane.showMessageDialog(null, e);
        }
       bersih();
+      
+        login lgn = new login();
+        lgn.setVisible(true);
+        this.setVisible(false);
+        this.dispose();
              
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton1ActionPerformed
