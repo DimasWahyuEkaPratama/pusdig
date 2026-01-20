@@ -33,5 +33,24 @@ Berikut adalah anggota kelompok yang berkontribusi dalam proyek ini:
 <details>
   <summary>PUSDIG SUMMARY</summary>
 
-  bwahh
+  ALUR PROSES APLIKASI PERPUSTAKAAN DIGITAL SEKOLAH
+
+Alur User :
+Peminjam melakukan login atau sign in ( melakukan Pendaftaran jika belum punya akun ).
+Peminjam mencari dan memilih Buku.
+Peminjam melakukan peminjaman Buku.
+Peminjam menunggu konfirmasi dari petugas.
+Peminjam mengambil buku di perpustakaan(ketika sudah di konfirmasi petugas).
+Peminjam mengembalikan Buku ke perpustakaan Saat batas waktu habis( dan membayar denda jika telat membayar ).
+Peminjam dapat Mengajukan Batas waktu pengembalian.
+Alur Admin :
+Admin melakukan login ( atau melakukan Pendaftaran jika belum punya akun ).
+Admin Dapat CRUD User
+Admin dapat CRUD data buku & stok buku.
+Admin melakukan Konfirmasi peminjaman Buku ( admin menginputkan tengat waktu pengembalian + denda\uang ).
+Admin memprosess pengembalian buku dari peminjaman ( update status kembali & denda jika ada )
+Admin melakukan Konfirmasi Pengajuan Batas waktu pengembalian buku ( Update status Di terima atau tidak )
+Admin dapat melihat semua data Riwayat transaksi Yang dilakukan User.
+Admin dapat mencetak laporan ( harian/bulanan/tahunan. )
+Tujuan dari batasan masalah ini adalah untuk menjaga agar pengembangan aplikasi tetap fokus, tidak meluas (scope creep), dan sesuai dengan alur logika yang telah Anda rancang (terutama mengingat ini adalah sistem manajemen buku fisik, bukan e-book).
 </details>
