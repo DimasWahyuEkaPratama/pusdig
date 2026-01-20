@@ -43,6 +43,7 @@ Peminjam menunggu konfirmasi dari petugas.
 Peminjam mengambil buku di perpustakaan(ketika sudah di konfirmasi petugas).
 Peminjam mengembalikan Buku ke perpustakaan Saat batas waktu habis( dan membayar denda jika telat membayar ).
 Peminjam dapat Mengajukan Batas waktu pengembalian.
+
 Alur Admin :
 Admin melakukan login ( atau melakukan Pendaftaran jika belum punya akun ).
 Admin Dapat CRUD User
