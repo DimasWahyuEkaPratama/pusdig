@@ -26,7 +26,7 @@ Berikut adalah anggota kelompok yang berkontribusi dalam proyek ini:
 | **Burhan** | (Unavailable) |
 | **Sofi** | (Unavailable) |
 | **Ambar** | (Unavailable) |
-| **Nia** | (Unavailable) |
+| **Nia** | [niarisma](https://github.com/niarisma) |
 | **Yuli** | (Unavailable) |
 | **Askan** | (Unavailable) |
 
