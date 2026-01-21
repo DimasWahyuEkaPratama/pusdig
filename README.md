@@ -23,11 +23,11 @@ Berikut adalah anggota kelompok yang berkontribusi dalam proyek ini:
 | **Radit** | [@ilhmrdtya](https://github.com/ilhmrdtya) |
 | **Bangkit** | [@Bangkit-eldhian24](https://github.com/Bangkit-eldhian24) |
 | **Isza** | [@riskiaiszaqia1-stack](https://github.com/riskiaiszaqia1-stack) |
-| **Burhan** | (Unavailable) |
-| **Sofi** | (Unavailable) |
+| **Burhan** | [@Burhan](https://github.com/prhnd) |
+| **Sofi** | [@Shoffy](https://github.com/octavia080) |
 | **Ambar** | (Unavailable) |
-| **Nia** | [niarisma](https://github.com/niarisma) |
-| **Yuli** | (Unavailable) |
+| **Nia** | [@niarisma](https://github.com/niarisma) |
+| **Yuli** | [@Yulianti](https://github.com/yulianti011) |
 | **Askan** | (Unavailable) |
 
 <details>
