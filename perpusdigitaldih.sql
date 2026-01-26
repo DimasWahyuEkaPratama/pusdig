@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 20 Jan 2026 pada 02.14
--- Versi server: 10.4.32-MariaDB
--- Versi PHP: 8.2.28
+-- Generation Time: Jan 21, 2026 at 09:37 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -20,11 +20,17 @@ SET time_zone = "+00:00";
 --
 -- Database: `perpusdigital`
 --
+-- Buat database baru
+CREATE DATABASE IF NOT EXISTS perpusdigital 
+DEFAULT CHARACTER SET utf8mb4 
+COLLATE utf8mb4_general_ci;
 
+-- Gunakan database
+USE perpusdigital;
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `buku`
+-- Table structure for table `buku`
 --
 
 CREATE TABLE `buku` (
@@ -44,7 +50,7 @@ CREATE TABLE `buku` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data untuk tabel `buku`
+-- Dumping data for table `buku`
 --
 
 INSERT INTO `buku` (`Buku_id`, `Judul`, `Penulis`, `Penerbit`, `Tahun_terbit`, `stok`, `kategori_id`, `imgsampul`, `deskripsi`, `update_by`, `update_at`, `created_by`, `created_at`) VALUES
@@ -60,7 +66,7 @@ INSERT INTO `buku` (`Buku_id`, `Judul`, `Penulis`, `Penerbit`, `Tahun_terbit`, `
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `kategori`
+-- Table structure for table `kategori`
 --
 
 CREATE TABLE `kategori` (
@@ -73,7 +79,7 @@ CREATE TABLE `kategori` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data untuk tabel `kategori`
+-- Dumping data for table `kategori`
 --
 
 INSERT INTO `kategori` (`kategori_id`, `name_kategori`, `created_at`, `created_by`, `update_at`, `update_by`) VALUES
@@ -87,7 +93,7 @@ INSERT INTO `kategori` (`kategori_id`, `name_kategori`, `created_at`, `created_b
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `peminjaman`
+-- Table structure for table `peminjaman`
 --
 
 CREATE TABLE `peminjaman` (
@@ -109,7 +115,7 @@ CREATE TABLE `peminjaman` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data untuk tabel `peminjaman`
+-- Dumping data for table `peminjaman`
 --
 
 INSERT INTO `peminjaman` (`peminjaman_id`, `user_id`, `buku_id`, `jumlah_pinjam`, `tanggal_pinjam`, `tanggal_kembali`, `Status`, `denda`, `catatan`, `pengajuan_batas_kembali`, `catatan_pengajuan`, `update_by`, `update_at`, `created_by`, `created_at`) VALUES
@@ -120,7 +126,7 @@ INSERT INTO `peminjaman` (`peminjaman_id`, `user_id`, `buku_id`, `jumlah_pinjam`
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `riwayat_peminjaman`
+-- Table structure for table `riwayat_peminjaman`
 --
 
 CREATE TABLE `riwayat_peminjaman` (
@@ -130,7 +136,7 @@ CREATE TABLE `riwayat_peminjaman` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data untuk tabel `riwayat_peminjaman`
+-- Dumping data for table `riwayat_peminjaman`
 --
 
 INSERT INTO `riwayat_peminjaman` (`riwayat_id`, `peminjaman_id`, `created_at`) VALUES
@@ -141,7 +147,7 @@ INSERT INTO `riwayat_peminjaman` (`riwayat_id`, `peminjaman_id`, `created_at`) V
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `user`
+-- Table structure for table `user`
 --
 
 CREATE TABLE `user` (
@@ -160,7 +166,7 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data untuk tabel `user`
+-- Dumping data for table `user`
 --
 
 INSERT INTO `user` (`user_id`, `username`, `password`, `fullname`, `role`, `status`, `alamat`, `telp`, `update_by`, `update_at`, `created_by`, `created_at`) VALUES
@@ -174,8 +180,8 @@ INSERT INTO `user` (`user_id`, `username`, `password`, `fullname`, `role`, `stat
 -- --------------------------------------------------------
 
 --
--- Stand-in struktur untuk tampilan `v_buku_tersedia`
--- (Lihat di bawah untuk tampilan aktual)
+-- Stand-in structure for view `v_buku_tersedia`
+-- (See below for the actual view)
 --
 CREATE TABLE `v_buku_tersedia` (
 `Buku_id` int(11)
@@ -190,8 +196,8 @@ CREATE TABLE `v_buku_tersedia` (
 -- --------------------------------------------------------
 
 --
--- Stand-in struktur untuk tampilan `v_laporan_siswa`
--- (Lihat di bawah untuk tampilan aktual)
+-- Stand-in structure for view `v_laporan_siswa`
+-- (See below for the actual view)
 --
 CREATE TABLE `v_laporan_siswa` (
 `user_id` int(11)
@@ -206,8 +212,8 @@ CREATE TABLE `v_laporan_siswa` (
 -- --------------------------------------------------------
 
 --
--- Stand-in struktur untuk tampilan `v_peminjaman_aktif`
--- (Lihat di bawah untuk tampilan aktual)
+-- Stand-in structure for view `v_peminjaman_aktif`
+-- (See below for the actual view)
 --
 CREATE TABLE `v_peminjaman_aktif` (
 `peminjaman_id` int(11)
@@ -224,7 +230,7 @@ CREATE TABLE `v_peminjaman_aktif` (
 -- --------------------------------------------------------
 
 --
--- Struktur untuk view `v_buku_tersedia`
+-- Structure for view `v_buku_tersedia`
 --
 DROP TABLE IF EXISTS `v_buku_tersedia`;
 
@@ -233,7 +239,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 -- --------------------------------------------------------
 
 --
--- Struktur untuk view `v_laporan_siswa`
+-- Structure for view `v_laporan_siswa`
 --
 DROP TABLE IF EXISTS `v_laporan_siswa`;
 
@@ -242,7 +248,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 -- --------------------------------------------------------
 
 --
--- Struktur untuk view `v_peminjaman_aktif`
+-- Structure for view `v_peminjaman_aktif`
 --
 DROP TABLE IF EXISTS `v_peminjaman_aktif`;
 
@@ -253,7 +259,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 
 --
--- Indeks untuk tabel `buku`
+-- Indexes for table `buku`
 --
 ALTER TABLE `buku`
   ADD PRIMARY KEY (`Buku_id`),
@@ -262,7 +268,7 @@ ALTER TABLE `buku`
   ADD KEY `created_by` (`created_by`);
 
 --
--- Indeks untuk tabel `kategori`
+-- Indexes for table `kategori`
 --
 ALTER TABLE `kategori`
   ADD PRIMARY KEY (`kategori_id`),
@@ -271,7 +277,7 @@ ALTER TABLE `kategori`
   ADD KEY `update_by` (`update_by`);
 
 --
--- Indeks untuk tabel `peminjaman`
+-- Indexes for table `peminjaman`
 --
 ALTER TABLE `peminjaman`
   ADD PRIMARY KEY (`peminjaman_id`),
@@ -281,14 +287,14 @@ ALTER TABLE `peminjaman`
   ADD KEY `created_by` (`created_by`);
 
 --
--- Indeks untuk tabel `riwayat_peminjaman`
+-- Indexes for table `riwayat_peminjaman`
 --
 ALTER TABLE `riwayat_peminjaman`
   ADD PRIMARY KEY (`riwayat_id`),
   ADD KEY `peminjaman_id` (`peminjaman_id`);
 
 --
--- Indeks untuk tabel `user`
+-- Indexes for table `user`
 --
 ALTER TABLE `user`
   ADD PRIMARY KEY (`user_id`),
@@ -297,45 +303,45 @@ ALTER TABLE `user`
   ADD KEY `created_by` (`created_by`);
 
 --
--- AUTO_INCREMENT untuk tabel yang dibuang
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT untuk tabel `buku`
+-- AUTO_INCREMENT for table `buku`
 --
 ALTER TABLE `buku`
   MODIFY `Buku_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
--- AUTO_INCREMENT untuk tabel `kategori`
+-- AUTO_INCREMENT for table `kategori`
 --
 ALTER TABLE `kategori`
   MODIFY `kategori_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
--- AUTO_INCREMENT untuk tabel `peminjaman`
+-- AUTO_INCREMENT for table `peminjaman`
 --
 ALTER TABLE `peminjaman`
   MODIFY `peminjaman_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT untuk tabel `riwayat_peminjaman`
+-- AUTO_INCREMENT for table `riwayat_peminjaman`
 --
 ALTER TABLE `riwayat_peminjaman`
   MODIFY `riwayat_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT untuk tabel `user`
+-- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
   MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
--- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
+-- Constraints for dumped tables
 --
 
 --
--- Ketidakleluasaan untuk tabel `buku`
+-- Constraints for table `buku`
 --
 ALTER TABLE `buku`
   ADD CONSTRAINT `buku_ibfk_1` FOREIGN KEY (`kategori_id`) REFERENCES `kategori` (`kategori_id`) ON DELETE CASCADE,
@@ -343,14 +349,14 @@ ALTER TABLE `buku`
   ADD CONSTRAINT `buku_ibfk_3` FOREIGN KEY (`created_by`) REFERENCES `user` (`user_id`) ON DELETE SET NULL;
 
 --
--- Ketidakleluasaan untuk tabel `kategori`
+-- Constraints for table `kategori`
 --
 ALTER TABLE `kategori`
   ADD CONSTRAINT `kategori_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `user` (`user_id`) ON DELETE SET NULL,
   ADD CONSTRAINT `kategori_ibfk_2` FOREIGN KEY (`update_by`) REFERENCES `user` (`user_id`) ON DELETE SET NULL;
 
 --
--- Ketidakleluasaan untuk tabel `peminjaman`
+-- Constraints for table `peminjaman`
 --
 ALTER TABLE `peminjaman`
   ADD CONSTRAINT `peminjaman_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE,
@@ -359,13 +365,13 @@ ALTER TABLE `peminjaman`
   ADD CONSTRAINT `peminjaman_ibfk_4` FOREIGN KEY (`created_by`) REFERENCES `user` (`user_id`) ON DELETE SET NULL;
 
 --
--- Ketidakleluasaan untuk tabel `riwayat_peminjaman`
+-- Constraints for table `riwayat_peminjaman`
 --
 ALTER TABLE `riwayat_peminjaman`
   ADD CONSTRAINT `riwayat_peminjaman_ibfk_1` FOREIGN KEY (`peminjaman_id`) REFERENCES `peminjaman` (`peminjaman_id`) ON DELETE CASCADE;
 
 --
--- Ketidakleluasaan untuk tabel `user`
+-- Constraints for table `user`
 --
 ALTER TABLE `user`
   ADD CONSTRAINT `user_ibfk_1` FOREIGN KEY (`update_by`) REFERENCES `user` (`user_id`) ON DELETE SET NULL,
