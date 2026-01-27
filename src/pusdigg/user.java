@@ -26,6 +26,7 @@ public class user extends javax.swing.JPanel {
     ResultSet rs =null;
     PreparedStatement pst = null;
     
+    private int currentUserId = 1;
     private DefaultTableModel model;
     private String sql;
     
@@ -35,9 +36,10 @@ public class user extends javax.swing.JPanel {
         conn = koneksi.koneksi.koneksiDB();
 
         model = new DefaultTableModel();
-        jTable1.setModel(model);
+        table.setModel(model);
 
         // Tambahkan kolom tabel
+        model.addColumn("ID");
         model.addColumn("Username");
         model.addColumn("Password");
         model.addColumn("Nama Lengkap");
@@ -52,59 +54,311 @@ public class user extends javax.swing.JPanel {
     model.setRowCount(0);
 
     try {
-        String sql = "SELECT * FROM user";
-        pst = conn.prepareStatement(sql);
-        rs = pst.executeQuery();
+        String sql = "SELECT user_id, username, password, fullname, role, telp, status, alamat FROM user ORDER BY user_id DESC";
+            pst = conn.prepareStatement(sql);
+            rs = pst.executeQuery();
 
-        while (rs.next()) {
-            Object[] obj = new Object[7];
-           
-            obj[0] = rs.getString("username");
-            obj[1] = rs.getString("password");
-            obj[2] = rs.getString("fullname");
-            obj[3] = rs.getString("role");
-            obj[4] = rs.getString("telp");
-            obj[5] = rs.getString("status");
-            obj[6] = rs.getString("alamat");
-           
-            model.addRow(obj);
+            while (rs.next()) {
+                Object[] obj = new Object[8];
+                
+                obj[0] = rs.getInt("user_id");
+                obj[1] = rs.getString("username");
+                obj[2] = rs.getString("password");
+                obj[3] = rs.getString("fullname");
+                obj[4] = rs.getString("role");
+                obj[5] = rs.getString("telp");
+                obj[6] = rs.getString("status");
+                obj[7] = rs.getString("alamat");
+                
+                model.addRow(obj);
+            }
+            
+            // Sembunyikan kolom ID
+            table.getColumnModel().getColumn(0).setMinWidth(0);
+            table.getColumnModel().getColumn(0).setMaxWidth(0);
+            table.getColumnModel().getColumn(0).setWidth(0);
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error getData: " + e.getMessage());
         }
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(null, e);
     }
-}
 
- 
+    void pilihData() {
+        int i = table.getSelectedRow();
+        
+        if (i == -1) {
+            JOptionPane.showMessageDialog(null, "Pilih data terlebih dahulu!");
+            return;
+        }
 
-  void pilihData() {
-    int i = jTable1.getSelectedRow();
+        txt_username.setText(model.getValueAt(i, 1).toString());
+        txt_password.setText(model.getValueAt(i, 2).toString());
+        txt_namalengkap.setText(model.getValueAt(i, 3).toString());
+        cmb_role.setSelectedItem(model.getValueAt(i, 4).toString());
+        txt_telp.setText(model.getValueAt(i, 5).toString());
+        cmb_status.setSelectedItem(model.getValueAt(i, 6).toString());
+        jTextArea1.setText(model.getValueAt(i, 7).toString());
+    }
 
-    txt_username.setText(model.getValueAt(i, 0).toString());
-    txt_password.setText(model.getValueAt(i, 1).toString());
-    txt_namalengkap.setText(model.getValueAt(i, 2).toString());
-    cmb_role.setSelectedItem(model.getValueAt(i, 3).toString());
-    txt_telp.setText(model.getValueAt(i, 4).toString());
-    cmb_status.setSelectedItem(model.getValueAt(i, 5).toString());
-    jTextArea1.setText(model.getValueAt(i, 6).toString());
-}
-
-
- 
     void bersih() {
-    txt_username.setText("");
-    txt_password.setText("");
-    txt_namalengkap.setText("");
-    txt_telp.setText("");
-    jTextArea1.setText("");
+        txt_username.setText("");
+        txt_password.setText("");
+        txt_namalengkap.setText("");
+        txt_telp.setText("");
+        jTextArea1.setText("");
 
-    cmb_role.setSelectedItem(null);   // kembali ke item pertama
-    cmb_status.setSelectedItem(null);
+        cmb_role.setSelectedIndex(0);
+        cmb_status.setSelectedIndex(0);
 
-    jTable1.clearSelection();       // hilangkan seleksi tabel (opsional)
-}
+        table.clearSelection();
+    }
 
-       
+    // ============================================
+    // BUTTON SIMPAN
+    // ============================================
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+        // Validasi input kosong
+        if (txt_username.getText().trim().isEmpty() || 
+            txt_password.getText().trim().isEmpty() || 
+            txt_namalengkap.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Username, Password, dan Nama Lengkap harus diisi!");
+            return;
+        }
+        
+        // Validasi password maksimal 8 karakter
+        if (txt_password.getText().length() > 8) {
+            JOptionPane.showMessageDialog(null, "Password maksimal 8 karakter!");
+            return;
+        }
+        
+        try {
+            String sql = "INSERT INTO user (username, password, fullname, role, telp, status, alamat, created_by, created_at) " +
+                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURDATE())";
+            pst = conn.prepareStatement(sql);
+            pst.setString(1, txt_username.getText().trim());
+            pst.setString(2, txt_password.getText());
+            pst.setString(3, txt_namalengkap.getText().trim());
+            pst.setString(4, (String) cmb_role.getSelectedItem());
+            pst.setString(5, txt_telp.getText().trim());
+            pst.setString(6, (String) cmb_status.getSelectedItem());
+            pst.setString(7, jTextArea1.getText().trim());
+            pst.setInt(8, currentUserId); // user yang membuat
+            
+            int result = pst.executeUpdate();
+            
+            if (result > 0) {
+                JOptionPane.showMessageDialog(null, "Data berhasil disimpan!");
+                bersih();
+                getData();
+            }
+            
+        } catch (SQLException e) {
+            if (e.getMessage().contains("Duplicate entry")) {
+                JOptionPane.showMessageDialog(null, "Username sudah digunakan!");
+            } else if (e.getMessage().contains("Data too long")) {
+                JOptionPane.showMessageDialog(null, "Password terlalu panjang! Maksimal 8 karakter.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Error Simpan: " + e.getMessage());
+            }
+        }
+    }
 
+    // ============================================
+    // BUTTON UPDATE
+    // ============================================
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
+        int i = table.getSelectedRow();
+        
+        if (i == -1) {
+            JOptionPane.showMessageDialog(null, "Pilih data yang ingin diupdate!");
+            return;
+        }
+        
+        // Validasi input kosong
+        if (txt_username.getText().trim().isEmpty() || 
+            txt_password.getText().trim().isEmpty() || 
+            txt_namalengkap.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Username, Password, dan Nama Lengkap harus diisi!");
+            return;
+        }
+        
+        // Validasi password maksimal 8 karakter
+        if (txt_password.getText().length() > 8) {
+            JOptionPane.showMessageDialog(null, "Password maksimal 8 karakter!");
+            return;
+        }
+        
+        int id = Integer.parseInt(model.getValueAt(i, 0).toString());
+
+        try {
+            String sql = "UPDATE user SET username=?, password=?, fullname=?, role=?, telp=?, status=?, alamat=?, " +
+                         "update_by=?, update_at=CURDATE() WHERE user_id=?";
+            pst = conn.prepareStatement(sql);
+            pst.setString(1, txt_username.getText().trim());
+            pst.setString(2, txt_password.getText());
+            pst.setString(3, txt_namalengkap.getText().trim());
+            pst.setString(4, (String) cmb_role.getSelectedItem());
+            pst.setString(5, txt_telp.getText().trim());
+            pst.setString(6, (String) cmb_status.getSelectedItem());
+            pst.setString(7, jTextArea1.getText().trim());
+            pst.setInt(8, currentUserId); // user yang mengupdate
+            pst.setInt(9, id);
+            
+            int result = pst.executeUpdate();
+            
+            if (result > 0) {
+                JOptionPane.showMessageDialog(null, "Data berhasil diupdate!");
+                bersih();
+                getData();
+            }
+
+        } catch (SQLException e) {
+            if (e.getMessage().contains("Duplicate entry")) {
+                JOptionPane.showMessageDialog(null, "Username sudah digunakan!");
+            } else if (e.getMessage().contains("Data too long")) {
+                JOptionPane.showMessageDialog(null, "Password terlalu panjang! Maksimal 8 karakter.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Error Update: " + e.getMessage());
+            }
+        }
+    }
+
+    // ============================================
+    // BUTTON REFRESH
+    // ============================================
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
+        bersih();
+        getData();
+        jTextField5.setText(""); // Clear search box
+        JOptionPane.showMessageDialog(null, "Data berhasil di-refresh!");
+    }
+
+    // ============================================
+    // BUTTON DELETE
+    // ============================================
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {
+        int i = table.getSelectedRow();
+        
+        if (i == -1) {
+            JOptionPane.showMessageDialog(null, "Pilih data yang ingin dihapus!");
+            return;
+        }
+        
+        int id = Integer.parseInt(model.getValueAt(i, 0).toString());
+        String username = model.getValueAt(i, 1).toString();
+         int currentUserId = 0;
+        
+        // Cegah hapus user sendiri (opsional)
+        if (id == currentUserId) {
+            JOptionPane.showMessageDialog(null, "Tidak dapat menghapus akun Anda sendiri!");
+            return;
+        }
+        
+        // Konfirmasi hapus
+        int confirm = JOptionPane.showConfirmDialog(null, 
+            "Apakah Anda yakin ingin menghapus user '" + username + "'?\n" +
+            "PERINGATAN: Semua data peminjaman terkait user ini akan ikut terhapus!",
+            "Konfirmasi Hapus",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                String sql = "DELETE FROM user WHERE user_id=?";
+                pst = conn.prepareStatement(sql);
+                pst.setInt(1, id);
+                
+                int result = pst.executeUpdate();
+                
+                if (result > 0) {
+                    JOptionPane.showMessageDialog(null, "Data berhasil dihapus!");
+                    bersih();
+                    getData();
+                }
+                
+            } catch (SQLException e) {
+                if (e.getMessage().contains("foreign key constraint")) {
+                    JOptionPane.showMessageDialog(null, 
+                        "Tidak dapat menghapus! User ini masih memiliki data peminjaman aktif.\n" +
+                        "Hapus data peminjaman terlebih dahulu.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Error Delete: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    // ============================================
+    // BUTTON CARI
+    // ============================================
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {
+        String keyword = jTextField5.getText().trim();
+        
+        if (keyword.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Masukkan kata kunci pencarian!");
+            jTextField5.requestFocus();
+            return;
+        }
+        
+        model.setRowCount(0);
+        
+        try {
+            String sql = "SELECT user_id, username, password, fullname, role, telp, status, alamat FROM user WHERE " +
+                         "username LIKE ? OR " +
+                         "fullname LIKE ? OR " +
+                         "telp LIKE ? OR " +
+                         "alamat LIKE ? OR " +
+                         "role LIKE ? OR " +
+                         "status LIKE ? " +
+                         "ORDER BY user_id DESC";
+            pst = conn.prepareStatement(sql);
+            
+            String searchPattern = "%" + keyword + "%";
+            pst.setString(1, searchPattern);
+            pst.setString(2, searchPattern);
+            pst.setString(3, searchPattern);
+            pst.setString(4, searchPattern);
+            pst.setString(5, searchPattern);
+            pst.setString(6, searchPattern);
+            
+            rs = pst.executeQuery();
+            
+            int count = 0;
+            while (rs.next()) {
+                Object[] obj = new Object[8];
+                
+                obj[0] = rs.getInt("user_id");
+                obj[1] = rs.getString("username");
+                obj[2] = rs.getString("password");
+                obj[3] = rs.getString("fullname");
+                obj[4] = rs.getString("role");
+                obj[5] = rs.getString("telp");
+                obj[6] = rs.getString("status");
+                obj[7] = rs.getString("alamat");
+                
+                model.addRow(obj);
+                count++;
+            }
+            
+            if (count == 0) {
+                JOptionPane.showMessageDialog(null, "Data tidak ditemukan!");
+                getData(); // Tampilkan semua data kembali
+                jTextField5.setText("");
+            } else {
+                JOptionPane.showMessageDialog(null, "Ditemukan " + count + " data");
+            }
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error Cari: " + e.getMessage());
+        }
+    }
+
+    // ============================================
+    // MOUSE CLICK TABLE
+    // ============================================
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {
+        pilihData();
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -121,22 +375,22 @@ public class user extends javax.swing.JPanel {
         jLabel3 = new javax.swing.JLabel();
         txt_namalengkap = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
-        cmb_role = new javax.swing.JComboBox<>();
+        cmb_role = new javax.swing.JComboBox<String>();
         jLabel5 = new javax.swing.JLabel();
         txt_telp = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
-        cmb_status = new javax.swing.JComboBox<>();
+        cmb_status = new javax.swing.JComboBox<String>();
         jLabel7 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
+        tombolsimpan = new javax.swing.JButton();
+        tombolupdate = new javax.swing.JButton();
+        tombolrefresh = new javax.swing.JButton();
+        tomboldelete = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        table = new javax.swing.JTable();
         jTextField5 = new javax.swing.JTextField();
-        jButton5 = new javax.swing.JButton();
+        cari = new javax.swing.JButton();
 
         jLabel1.setText("username");
 
@@ -146,13 +400,13 @@ public class user extends javax.swing.JPanel {
 
         jLabel4.setText("role");
 
-        cmb_role.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "admin", "user" }));
+        cmb_role.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "admin", "user" }));
 
         jLabel5.setText("telp");
 
         jLabel6.setText("status");
 
-        cmb_status.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "guru", "siswa", "lainnya" }));
+        cmb_status.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "guru", "siswa", "lainnya" }));
 
         jLabel7.setText("alamat");
 
@@ -160,30 +414,35 @@ public class user extends javax.swing.JPanel {
         jTextArea1.setRows(5);
         jScrollPane1.setViewportView(jTextArea1);
 
-        jButton1.setText("Simpan");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        tombolsimpan.setText("Simpan");
+        tombolsimpan.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                tombolsimpanActionPerformed(evt);
             }
         });
 
-        jButton2.setText("Update");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        tombolupdate.setText("Update");
+        tombolupdate.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                tombolupdateActionPerformed(evt);
             }
         });
 
-        jButton3.setText("Refresh");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        tombolrefresh.setText("Refresh");
+        tombolrefresh.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                tombolrefreshActionPerformed(evt);
             }
         });
 
-        jButton4.setText("Delete");
+        tomboldelete.setText("Delete");
+        tomboldelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tomboldeleteActionPerformed(evt);
+            }
+        });
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -194,14 +453,19 @@ public class user extends javax.swing.JPanel {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jTable1MouseClicked(evt);
+                tableMouseClicked(evt);
             }
         });
-        jScrollPane2.setViewportView(jTable1);
+        jScrollPane2.setViewportView(table);
 
-        jButton5.setText("CARI");
+        cari.setText("CARI");
+        cari.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cariActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -211,13 +475,13 @@ public class user extends javax.swing.JPanel {
                 .addGap(23, 23, 23)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(tombolsimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(jButton2)
+                        .addComponent(tombolupdate)
                         .addGap(22, 22, 22)
-                        .addComponent(jButton3)
+                        .addComponent(tombolrefresh)
                         .addGap(18, 18, 18)
-                        .addComponent(jButton4)
+                        .addComponent(tomboldelete)
                         .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -241,7 +505,7 @@ public class user extends javax.swing.JPanel {
                                 .addGap(75, 75, 75)
                                 .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 318, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
-                                .addComponent(jButton5))
+                                .addComponent(cari))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 46, Short.MAX_VALUE)
                                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -254,7 +518,7 @@ public class user extends javax.swing.JPanel {
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
+                    .addComponent(cari, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
                     .addComponent(jTextField5, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
                     .addComponent(txt_username))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -285,81 +549,272 @@ public class user extends javax.swing.JPanel {
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(29, 29, 29)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(tombolsimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(tombolupdate, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(tombolrefresh, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(tomboldelete, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(26, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
- try{
-           String sql = "insert into user (username,password,fullname,role,telp,status,alamat)values(?,?,?,?,?,?,?)";
-           pst = conn.prepareStatement(sql);
-           pst.setString(1, txt_username.getText());
-           pst.setString(2, txt_password.getText());
-           pst.setString(3, txt_namalengkap.getText());
-           pst.setString(4, (String) cmb_role.getItemAt(cmb_role.getSelectedIndex()));
-           pst.setString(5, txt_telp.getText());
-           pst.setString(6, (String) cmb_status.getItemAt(cmb_status.getSelectedIndex()));
-           pst.setString(7, jTextArea1.getText());
-           pst.execute();
-           JOptionPane.showMessageDialog(null, "Data berhasil disimpan!");
-       } catch (Exception e) {
-           JOptionPane.showMessageDialog(null, e);
-       }
-      bersih();
-       
+    private void tombolsimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tombolsimpanActionPerformed
+ // Validasi input kosong
+        if (txt_username.getText().trim().isEmpty() || 
+            txt_password.getText().trim().isEmpty() || 
+            txt_namalengkap.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Username, Password, dan Nama Lengkap harus diisi!");
+            return;
+        }
+        
+        // Validasi password maksimal 8 karakter
+        if (txt_password.getText().length() > 8) {
+            JOptionPane.showMessageDialog(null, "Password maksimal 8 karakter!");
+            return;
+        }
+        
+        try {
+            String sql = "INSERT INTO user (username, password, fullname, role, telp, status, alamat, created_by, created_at) " +
+                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURDATE())";
+            pst = conn.prepareStatement(sql);
+            pst.setString(1, txt_username.getText().trim());
+            pst.setString(2, txt_password.getText());
+            pst.setString(3, txt_namalengkap.getText().trim());
+            pst.setString(4, (String) cmb_role.getSelectedItem());
+            pst.setString(5, txt_telp.getText().trim());
+            pst.setString(6, (String) cmb_status.getSelectedItem());
+            pst.setString(7, jTextArea1.getText().trim());
+            pst.setInt(8, currentUserId);
+            
+            int result = pst.executeUpdate();
+            
+            if (result > 0) {
+                JOptionPane.showMessageDialog(null, "Data berhasil disimpan!");
+                bersih();
+                getData();
+            }
+            
+        } catch (SQLException e) {
+            if (e.getMessage().contains("Duplicate entry")) {
+                JOptionPane.showMessageDialog(null, "Username sudah digunakan!");
+            } else if (e.getMessage().contains("Data too long")) {
+                JOptionPane.showMessageDialog(null, "Password terlalu panjang! Maksimal 8 karakter.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Error Simpan: " + e.getMessage());
+            }
+        }
     
-    getData();
-   
         // TODO add your handling code here:
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_tombolsimpanActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+    private void tombolrefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tombolrefreshActionPerformed
         // TODO add your handling code here:
         bersih();
         getData();
-    }//GEN-LAST:event_jButton3ActionPerformed
+        jTextField5.setText("");
+        JOptionPane.showMessageDialog(null, "Data berhasil di-refresh!");
+  
+    }//GEN-LAST:event_tombolrefreshActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void tombolupdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tombolupdateActionPerformed
         // TODO add your handling code here:
-        int i = jTable1.getSelectedRow();
+       int i = table.getSelectedRow();
+        
+        if (i == -1) {
+            JOptionPane.showMessageDialog(null, "Pilih data yang ingin diupdate!");
+            return;
+        }
+        
+        // Validasi input kosong
+        if (txt_username.getText().trim().isEmpty() || 
+            txt_password.getText().trim().isEmpty() || 
+            txt_namalengkap.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Username, Password, dan Nama Lengkap harus diisi!");
+            return;
+        }
+        
+        // Validasi password maksimal 8 karakter
+        if (txt_password.getText().length() > 8) {
+            JOptionPane.showMessageDialog(null, "Password maksimal 8 karakter!");
+            return;
+        }
+        
         int id = Integer.parseInt(model.getValueAt(i, 0).toString());
 
-    try {
-        String sql = "UPDATE user SET Name_User=? WHERE user_id=?";
-        pst = conn.prepareStatement(sql);
-        pst.setString(1,txt_username.getText());
-        pst.setInt(2, id);
-        pst.executeUpdate();
+        try {
+            String sql = "UPDATE user SET username=?, password=?, fullname=?, role=?, telp=?, status=?, alamat=?, " +
+                         "update_by=?, update_at=CURDATE() WHERE user_id=?";
+            pst = conn.prepareStatement(sql);
+            pst.setString(1, txt_username.getText().trim());
+            pst.setString(2, txt_password.getText());
+            pst.setString(3, txt_namalengkap.getText().trim());
+            pst.setString(4, (String) cmb_role.getSelectedItem());
+            pst.setString(5, txt_telp.getText().trim());
+            pst.setString(6, (String) cmb_status.getSelectedItem());
+            pst.setString(7, jTextArea1.getText().trim());
+            pst.setInt(8, currentUserId);
+            pst.setInt(9, id);
+            
+            int result = pst.executeUpdate();
+            
+            if (result > 0) {
+                JOptionPane.showMessageDialog(null, "Data berhasil diupdate!");
+                bersih();
+                getData();
+            }
 
-        JOptionPane.showMessageDialog(null, "Update sukses");
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(null, e);
-    }
+        } catch (SQLException e) {
+            if (e.getMessage().contains("Duplicate entry")) {
+                JOptionPane.showMessageDialog(null, "Username sudah digunakan!");
+            } else if (e.getMessage().contains("Data too long")) {
+                JOptionPane.showMessageDialog(null, "Password terlalu panjang! Maksimal 8 karakter.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Error Update: " + e.getMessage());
+            }
+        }
 
-    getData();
-    bersih();
+    }//GEN-LAST:event_tombolupdateActionPerformed
 
-    }//GEN-LAST:event_jButton2ActionPerformed
-
-    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
-        // TODO add your handling code here:
+    private void tableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableMouseClicked
         pilihData();
-    }//GEN-LAST:event_jTable1MouseClicked
+        
+        if (evt.getClickCount() == 2) {
+        txt_username.requestFocus();
+        }    
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
+    public void mouseClicked(java.awt.event.MouseEvent evt) {
+        jTable1MouseClicked(evt);
+    }
+});        
+// TODO add your handling code here:
+    }//GEN-LAST:event_tableMouseClicked
+
+    private void cariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cariActionPerformed
+        String keyword = jTextField5.getText().trim();
+        
+        if (keyword.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Masukkan kata kunci pencarian!");
+            jTextField5.requestFocus();
+            return;
+        }
+        
+        model.setRowCount(0);
+        
+        try {
+            String sql = "SELECT user_id, username, password, fullname, role, telp, status, alamat FROM user WHERE " +
+                         "username LIKE ? OR " +
+                         "fullname LIKE ? OR " +
+                         "telp LIKE ? OR " +
+                         "alamat LIKE ? OR " +
+                         "role LIKE ? OR " +
+                         "status LIKE ? " +
+                         "ORDER BY user_id DESC";
+            pst = conn.prepareStatement(sql);
+            
+            String searchPattern = "%" + keyword + "%";
+            pst.setString(1, searchPattern);
+            pst.setString(2, searchPattern);
+            pst.setString(3, searchPattern);
+            pst.setString(4, searchPattern);
+            pst.setString(5, searchPattern);
+            pst.setString(6, searchPattern);
+            
+            rs = pst.executeQuery();
+            
+            int count = 0;
+            while (rs.next()) {
+                Object[] obj = new Object[8];
+                
+                obj[0] = rs.getInt("user_id");
+                obj[1] = rs.getString("username");
+                obj[2] = rs.getString("password");
+                obj[3] = rs.getString("fullname");
+                obj[4] = rs.getString("role");
+                obj[5] = rs.getString("telp");
+                obj[6] = rs.getString("status");
+                obj[7] = rs.getString("alamat");
+                
+                model.addRow(obj);
+                count++;
+            }
+            
+            if (count == 0) {
+                JOptionPane.showMessageDialog(null, "Data tidak ditemukan!");
+                getData();
+                jTextField5.setText("");
+            } else {
+                JOptionPane.showMessageDialog(null, "Ditemukan " + count + " data");
+            }
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error Cari: " + e.getMessage());
+        }
+    
+    
+        
+        cari.addActionListener(new java.awt.event.ActionListener() {
+    public void actionPerformed(java.awt.event.ActionEvent evt) {
+        cariActionPerformed(evt);
+    }
+});        // TODO add your handling code here:
+    }//GEN-LAST:event_cariActionPerformed
+
+    private void tomboldeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tomboldeleteActionPerformed
+        int i = table.getSelectedRow();
+        
+        if (i == -1) {
+            JOptionPane.showMessageDialog(null, "Pilih data yang ingin dihapus!");
+            return;
+        }
+        
+        int id = Integer.parseInt(model.getValueAt(i, 0).toString());
+        String username = model.getValueAt(i, 1).toString();
+        
+        // Cegah hapus user sendiri
+        if (id == currentUserId) {
+            JOptionPane.showMessageDialog(null, "Tidak dapat menghapus akun Anda sendiri!");
+            return;
+        }
+        
+        // Konfirmasi hapus
+        int confirm = JOptionPane.showConfirmDialog(null, 
+            "Apakah Anda yakin ingin menghapus user '" + username + "'?\n" +
+            "PERINGATAN: Semua data peminjaman terkait user ini akan ikut terhapus!",
+            "Konfirmasi Hapus",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                String sql = "DELETE FROM user WHERE user_id=?";
+                pst = conn.prepareStatement(sql);
+                pst.setInt(1, id);
+                
+                int result = pst.executeUpdate();
+                
+                if (result > 0) {
+                    JOptionPane.showMessageDialog(null, "Data berhasil dihapus!");
+                    bersih();
+                    getData();
+                }
+                
+            } catch (SQLException e) {
+                if (e.getMessage().contains("foreign key constraint")) {
+                    JOptionPane.showMessageDialog(null, 
+                        "Tidak dapat menghapus! User ini masih memiliki data peminjaman aktif.\n" +
+                        "Hapus data peminjaman terlebih dahulu.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Error Delete: " + e.getMessage());
+                }
+            }
+        }        // TODO add your handling code here:
+    }//GEN-LAST:event_tomboldeleteActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton cari;
     private javax.swing.JComboBox<String> cmb_role;
     private javax.swing.JComboBox<String> cmb_status;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -369,9 +824,13 @@ public class user extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTable jTable1;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextField jTextField5;
+    private javax.swing.JTable table;
+    private javax.swing.JButton tomboldelete;
+    private javax.swing.JButton tombolrefresh;
+    private javax.swing.JButton tombolsimpan;
+    private javax.swing.JButton tombolupdate;
     private javax.swing.JTextField txt_namalengkap;
     private javax.swing.JTextField txt_password;
     private javax.swing.JTextField txt_telp;
