@@ -6,9 +6,10 @@
 package pusdigg;
 import java.awt.CardLayout;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import pusdigg.dashboard_user;
 import pusdigg.riwayat_transaksi_user;
-import pusdigg.peminjaman_buku;
+import pusdigg.peminjaman_user;
 import pusdigg.detail_peminjaman;
 
 /**
@@ -17,7 +18,7 @@ import pusdigg.detail_peminjaman;
  */
 public class sidebar_user extends javax.swing.JFrame {
     dashboard_user a = new dashboard_user();
-    peminjaman_buku b = new peminjaman_buku();
+    peminjaman_user b = new peminjaman_user();
     detail_peminjaman c = new detail_peminjaman();
     riwayat_transaksi_user d = new riwayat_transaksi_user();
 
@@ -28,7 +29,7 @@ public class sidebar_user extends javax.swing.JFrame {
         initComponents();
          main.setLayout(new CardLayout());
          main.add(a, "dashboard_user");
-         main.add(b, "peminjaman_buku");
+         main.add(b, "peminjaman_user");
          main.add(c, "detail_peminjaman");
          main.add(d, "riwayat_transaksi_user");
        
@@ -52,6 +53,7 @@ public class sidebar_user extends javax.swing.JFrame {
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
+        jButton5 = new javax.swing.JButton();
         main = new javax.swing.JLayeredPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -86,6 +88,13 @@ public class sidebar_user extends javax.swing.JFrame {
             }
         });
 
+        jButton5.setText("Logout");
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -98,6 +107,10 @@ public class sidebar_user extends javax.swing.JFrame {
                     .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(70, 70, 70)
+                .addComponent(jButton5)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -110,7 +123,9 @@ public class sidebar_user extends javax.swing.JFrame {
                 .addComponent(jButton3)
                 .addGap(18, 18, 18)
                 .addComponent(jButton4)
-                .addContainerGap(209, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 140, Short.MAX_VALUE)
+                .addComponent(jButton5)
+                .addContainerGap())
         );
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.LINE_START);
@@ -138,7 +153,7 @@ CardLayout cl = (CardLayout) main.getLayout();
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 CardLayout cl = (CardLayout) main.getLayout();
-        cl.show(main, "peminjaman_buku");        // TODO add your handling code here:        // TODO add your handling code here:
+        cl.show(main, "peminjaman_user");        // TODO add your handling code here:        // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
@@ -152,6 +167,24 @@ CardLayout cl = (CardLayout) main.getLayout();
         cl.show(main, "riwayat_transaksi_user");
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+    // 1️⃣ Konfirmasi logout
+    int confirm = JOptionPane.showConfirmDialog(null, 
+        "Apakah Anda yakin ingin logout?", "Logout", JOptionPane.YES_NO_OPTION);
+
+    if (confirm == JOptionPane.YES_OPTION) {
+        // 2️⃣ Bersihkan session (jika pakai session)
+        session.logout(); // contoh jika ada method clear() di session class
+
+        // 3️⃣ Tutup window saat ini
+        this.dispose(); // menutup JFrame saat ini
+
+        // 4️⃣ Buka window login
+        login Login = new login();
+        Login.setVisible(true);
+    }           // TODO add your handling code here:
+    }//GEN-LAST:event_jButton5ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -193,6 +226,7 @@ CardLayout cl = (CardLayout) main.getLayout();
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLayeredPane main;
     // End of variables declaration//GEN-END:variables

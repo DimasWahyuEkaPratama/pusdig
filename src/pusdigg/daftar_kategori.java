@@ -47,6 +47,11 @@ public class daftar_kategori extends javax.swing.JPanel {
     table.addColumn("Created_At");
 
     table_kategori.setModel(table);
+    
+// sembunyikan ID
+table_kategori.getColumnModel().getColumn(0).setMinWidth(0);
+table_kategori.getColumnModel().getColumn(0).setMaxWidth(0);
+table_kategori.getColumnModel().getColumn(0).setWidth(0);
 
     getData();
 }
@@ -89,6 +94,11 @@ private void pilihKategori() {
 
     dialog.dispose();
 }
+
+void bersih() {
+    jTextField1.setText("");
+}
+
 
     
 
@@ -133,10 +143,25 @@ private void pilihKategori() {
         });
 
         jButton1.setText("CARI");
+        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton1MouseClicked(evt);
+            }
+        });
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jButton2.setText("Back");
 
         jButton3.setText("Refresh");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -170,7 +195,7 @@ private void pilihKategori() {
                 .addGap(25, 25, 25)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jTextField1)
-                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 29, Short.MAX_VALUE))
+                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 235, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -187,6 +212,41 @@ private void pilihKategori() {
   pilihKategori();        
         // TODO add your handling code here:
     }//GEN-LAST:event_table_kategoriMouseClicked
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:                                        
+    table.setRowCount(0); // reset tabel
+
+    try {
+        String keyword = jTextField1.getText();
+        String sql = "SELECT * FROM kategori WHERE Name_Kategori LIKE ?";
+        pst = conn.prepareStatement(sql);
+        pst.setString(1, "%" + keyword + "%");
+        rs = pst.executeQuery();
+
+        while (rs.next()) {
+            Object[] obj = new Object[3];
+            obj[0] = rs.getInt("Kategori_Id");
+            obj[1] = rs.getString("Name_Kategori");
+            obj[2] = rs.getDate("Created_At");
+            table.addRow(obj);
+        }
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, e);
+    }
+
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
+        // TODO add your handling code here:
+        
+    }//GEN-LAST:event_jButton1MouseClicked
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        // TODO add your handling code here:
+        getData();
+        bersih();
+    }//GEN-LAST:event_jButton3ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
