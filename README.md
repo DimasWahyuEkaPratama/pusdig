@@ -1,8 +1,9 @@
 # <summary><strong> PERPUSTAKAAN DIGITAL (PUSDIG)📚 </strong></summary>
 tugas kelompok untuk bagian isi codingan / data, yg sudah di rencanakan bersama
 
-[pusdig](https://www.mediafire.com/file/pnqaa144cq8t9p8/pusdigg.zip/file)
-[database](https://www.mediafire.com/file/9llg087pt6chy62/perpusdigital.sql/file)
+## [pusdig](https://www.mediafire.com/file/pnqaa144cq8t9p8/pusdigg.zip/file)
+
+## [database](https://www.mediafire.com/file/9llg087pt6chy62/perpusdigital.sql/file)
 
 [OUR CONTRIBUTORS](#contribs)
 
