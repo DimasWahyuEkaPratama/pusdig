@@ -1,0 +1,14 @@
+# Build artifacts
+build/
+*.class
+*.jar
+
+# NetBeans private
+nbproject/private/
+
+# Archives & dumps
+*.zip
+*.sql
+
+# OS / editor
+.DS_Store
