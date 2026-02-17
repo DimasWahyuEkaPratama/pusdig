@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -58,9 +59,88 @@ public class dashboard_admin extends javax.swing.JPanel {
             total_kategori.setText("" + totalKategori); // baru digabung dengan string
         }     
         
+        // Hitung Peminjaman Sedang Berlangsung
+        ResultSet rsSedang = st.executeQuery(
+            "SELECT COUNT(*) AS total_sedang FROM peminjaman WHERE status in ('pending','dipinjam','ditolak','diterima','diperpanjang')"
+        );
+        if (rsSedang.next()) {
+            int totalSedang = rsSedang.getInt("total_sedang");
+            peminjaman_sedang.setText("" + totalSedang); // set ke label/komponen
+        }
+
+        // Hitung Peminjaman Selesai
+        ResultSet rsSelesai = st.executeQuery(
+            "SELECT COUNT(*) AS total_selesai FROM peminjaman WHERE status = 'selesai'"
+        );
+        if (rsSelesai.next()) {
+            int totalSelesai = rsSelesai.getInt("total_selesai");
+            peminjaman_selesai.setText("" + totalSelesai); // set ke label/komponen
+        }
+
             st.close();
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+        
+        
+        // Panggil Data Peminjaman yang terbaru
+        model = new DefaultTableModel();
+        jTable1.setModel(model);
+
+        // Tambahkan kolom tabel
+        model.addColumn("ID"); // ⬅ peminjaman_id (hidden)
+        model.addColumn("Kode Peminjaman");
+        model.addColumn("Name");
+        model.addColumn("Judul Buku");
+        model.addColumn("Kategori Buku");
+        model.addColumn("Jumlah Pinjam");
+        model.addColumn("Tanggal Pinjam");
+        model.addColumn("Tanggal Kembali");
+        model.addColumn("Status");
+
+        // sembunyikan kolom ID
+        jTable1.getColumnModel().getColumn(0).setMinWidth(0);
+        jTable1.getColumnModel().getColumn(0).setMaxWidth(0);
+        getData();
+    }
+
+    void getData() {
+        model.setRowCount(0);
+
+        try {
+          String sql =
+            "SELECT p.peminjaman_id, p.kode_peminjaman, u.fullname, b.judul, " +
+            "k.name_kategori, p.jumlah_pinjam, p.tanggal_pinjam, " +
+            "p.tanggal_kembali, p.status " +
+            "FROM peminjaman p " +
+            "JOIN user u ON p.user_id = u.user_id " +
+            "JOIN buku b ON p.Buku_id = b.Buku_id " +
+            "JOIN kategori k ON b.kategori_id = k.kategori_id " +
+            "WHERE p.status <> 'selesai'" +
+            "ORDER BY p.tanggal_pinjam DESC";
+
+
+
+            pst = conn.prepareStatement(sql);
+            rs = pst.executeQuery();
+
+            while (rs.next()) {
+               Object[] row = {
+                rs.getInt("peminjaman_id"),
+                rs.getString("kode_peminjaman"),
+                rs.getString("fullname"),
+                rs.getString("judul"),
+                rs.getString("name_kategori"),
+                rs.getInt("jumlah_pinjam"),
+                rs.getDate("tanggal_pinjam"),
+                rs.getDate("tanggal_kembali"),
+                rs.getString("status")
+            };
+            model.addRow(row);
+
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 
@@ -85,16 +165,13 @@ public class dashboard_admin extends javax.swing.JPanel {
         total_kategori = new javax.swing.JLabel();
         jPanel5 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
+        peminjaman_sedang = new javax.swing.JLabel();
         jPanel6 = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
+        peminjaman_selesai = new javax.swing.JLabel();
         username = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
-        jTextField1 = new javax.swing.JTextField();
-        jComboBox1 = new javax.swing.JComboBox<>();
-        jButton1 = new javax.swing.JButton();
 
         jPanel2.setBackground(new java.awt.Color(255, 255, 255));
         jPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -167,7 +244,7 @@ public class dashboard_admin extends javax.swing.JPanel {
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addComponent(jLabel3)
-                .addGap(0, 22, Short.MAX_VALUE))
+                .addGap(0, 49, Short.MAX_VALUE))
             .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel4Layout.createSequentialGroup()
                     .addContainerGap()
@@ -189,10 +266,9 @@ public class dashboard_admin extends javax.swing.JPanel {
         jPanel5.setBackground(new java.awt.Color(255, 255, 255));
         jPanel5.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
-        jLabel4.setText("Total Peminjaman Aktif(belum) :");
+        jLabel4.setText("Peminjaman berlangsung");
 
-        jLabel10.setFont(new java.awt.Font("Tahoma", 1, 48)); // NOI18N
-        jLabel10.setText("0");
+        peminjaman_sedang.setFont(new java.awt.Font("Tahoma", 1, 48)); // NOI18N
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -200,32 +276,31 @@ public class dashboard_admin extends javax.swing.JPanel {
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addComponent(jLabel4)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGap(0, 35, Short.MAX_VALUE))
             .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
-                    .addContainerGap(78, Short.MAX_VALUE)
-                    .addComponent(jLabel10)
-                    .addGap(69, 69, 69)))
+                    .addContainerGap(49, Short.MAX_VALUE)
+                    .addComponent(peminjaman_sedang, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(28, 28, 28)))
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addComponent(jLabel4)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(136, Short.MAX_VALUE))
             .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
-                    .addContainerGap(28, Short.MAX_VALUE)
-                    .addComponent(jLabel10)
+                    .addContainerGap(54, Short.MAX_VALUE)
+                    .addComponent(peminjaman_sedang, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGap(26, 26, 26)))
         );
 
         jPanel6.setBackground(new java.awt.Color(255, 255, 255));
         jPanel6.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
-        jLabel5.setText("Total Riwayat Peminjaman(belum) :");
+        jLabel5.setText("Peminjaman Selesai");
 
-        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 48)); // NOI18N
-        jLabel8.setText("0");
+        peminjaman_selesai.setFont(new java.awt.Font("Tahoma", 1, 48)); // NOI18N
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -235,16 +310,16 @@ public class dashboard_admin extends javax.swing.JPanel {
                 .addComponent(jLabel5)
                 .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(jPanel6Layout.createSequentialGroup()
-                .addGap(78, 78, 78)
-                .addComponent(jLabel8)
+                .addGap(55, 55, 55)
+                .addComponent(peminjaman_selesai, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addComponent(jLabel5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 58, Short.MAX_VALUE)
-                .addComponent(jLabel8)
+                .addGap(18, 18, 18)
+                .addComponent(peminjaman_selesai, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -262,15 +337,6 @@ public class dashboard_admin extends javax.swing.JPanel {
             }
         ));
         jScrollPane1.setViewportView(jTable1);
-
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        jButton1.setText("Cari");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -290,13 +356,7 @@ public class dashboard_admin extends javax.swing.JPanel {
                         .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane1)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 683, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(jScrollPane1))
                 .addContainerGap(43, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -311,13 +371,8 @@ public class dashboard_admin extends javax.swing.JPanel {
                     .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(27, 27, 27)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(29, 29, 29)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(39, Short.MAX_VALUE))
         );
 
@@ -335,21 +390,13 @@ public class dashboard_admin extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton1ActionPerformed
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -358,7 +405,8 @@ public class dashboard_admin extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel6;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JLabel peminjaman_sedang;
+    private javax.swing.JLabel peminjaman_selesai;
     private javax.swing.JLabel total_buku;
     private javax.swing.JLabel total_kategori;
     private javax.swing.JLabel total_user;

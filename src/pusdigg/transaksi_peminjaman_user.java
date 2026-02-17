@@ -4,80 +4,379 @@
  * and open the template in the editor.
  */
 package pusdigg;
+import java.awt.Color;
+import java.awt.Component;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import pusdigg.session;
+
 /**
  *
  * @author ASUS vivobook
  */
 public class transaksi_peminjaman_user extends javax.swing.JPanel {
+Connection conn;
+    PreparedStatement pst;
+    ResultSet rs;
+    DefaultTableModel model;
 
-    /**
-     * Creates new form transaksi_peminjaman_user
-     */
-    Connection conn = null;
-    ResultSet rs =null;
-    PreparedStatement pst = null;
-    
-    private DefaultTableModel model;
-    private String sql;
-    
     String id = session.getU_id();
     String usernamee = session.getU_username();
+    private boolean reminderSudahTampil = false; // ✅ INI YANG KURANG
+
     public transaksi_peminjaman_user() {
         initComponents();
-        id_user.setText("SELAMAT DATANG"+id);
-        username.setText("ANDA LOGIN SEBAGAI"+usernamee);
-        
+     // ComboBox status
+        jButton2.setEnabled(false);
+        jComboBox1.removeAllItems();
+        jComboBox1.addItem("Semua");
+        jComboBox1.addItem("dipinjam");
+        jComboBox1.addItem("diperpanjang");
+        jComboBox1.addItem("diterima");
+        jComboBox1.addItem("ditolak");
+        jComboBox1.addItem("pending");
+
+        id_user.setText("SELAMAT DATANG " + id);
+        username.setText("ANDA LOGIN SEBAGAI " + usernamee);
+
         conn = koneksi.koneksi.koneksiDB();
 
-        model = new DefaultTableModel();
-        jTable1.setModel(model);
+   // ===== MODEL TABEL (11 KOLOM) =====
+        model = new DefaultTableModel(new String[]{
+            "Kode Peminjaman",   // 0
+            "Kode Buku",         // 1
+            "Username",          // 2
+            "Judul Buku",        // 3
+            "Kategori",          // 4
+            "Jumlah",            // 5
+            "Tanggal Pinjam",    // 6
+            "Tanggal Kembali",   // 7
+            "Status",            // 8
+            "Denda",             // 9
+            "Catatan"            // 10 (disembunyikan)
+    }, 0) {
+        @Override
+        public boolean isCellEditable(int r, int c) {
+            return false;
+        }
+    };
+    tblPeminjaman.setModel(model);
 
-        // Tambahkan kolom tabel
-        model.addColumn("Kode Peminjaman");
-        model.addColumn("Name");
-        model.addColumn("Judul Buku");
-        model.addColumn("Kategori Buku");
-        model.addColumn("Jumlah Pinjam");
-        model.addColumn("Tanggal Pinjam");
-        model.addColumn("Status");
+    // ===== RENDERER WARNA + ICON =====
+    tblPeminjaman.setDefaultRenderer(Object.class,
+    new DefaultTableCellRenderer() {
+        @Override
+        public Component getTableCellRendererComponent(
+                JTable table, Object value, boolean isSelected,
+                boolean hasFocus, int row, int column) {
 
+            JLabel c = (JLabel) super.getTableCellRendererComponent(
+                    table, value, isSelected, hasFocus, row, column);
+
+            c.setForeground(Color.BLACK);
+
+            if (column == 7) { // tanggal kembali
+                Object obj = table.getValueAt(row, 7);
+                if (obj != null) {
+                    Date tgl = (Date) obj;
+                    LocalDate today = LocalDate.now();
+                    LocalDate kembali = tgl.toLocalDate();
+
+                   long selisih = ChronoUnit.DAYS.between(today, kembali);
+
+                    if (selisih <= 0) {
+                        c.setText("⏰ TELAT (" + kembali + ")");
+                        c.setForeground(Color.RED);
+                    } else if (selisih == 1) {
+                        c.setText("⚠ BESOK (" + kembali + ")");
+                        c.setForeground(Color.ORANGE);
+                    } else {
+                        c.setText(kembali.toString());
+                    }
+
+                }
+            }
+            return c;
+        }
+    });
+
+    // ===== TOOLTIP SELURUH BARIS =====
+    tblPeminjaman.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+        @Override
+        public void mouseMoved(java.awt.event.MouseEvent e) {
+
+            int row = tblPeminjaman.rowAtPoint(e.getPoint());
+            if (row == -1) {
+                tblPeminjaman.setToolTipText(null);
+                return;
+            }
+
+            String status = tblPeminjaman
+                    .getValueAt(row, 8)
+                    .toString().toLowerCase();
+
+            String judul = "";
+            String isi = "";
+
+           switch (status) {
+                case "pending":
+                    judul = "Status";
+                    isi = "Menunggu validasi admin";
+                    break;
+
+                case "dipinjam":
+                    judul = "Status";
+                    isi = "Buku sedang dipinjam";
+                    break;
+
+                case "diterima":
+                case "ditolak":
+                case "diperpanjang":
+                    judul = "Catatan";
+                    isi = getIsi(tblPeminjaman.getValueAt(row, 10)); // ✅ dari DB
+                    break;
+
+                default:
+                    tblPeminjaman.setToolTipText(null);
+                    return;
+                        }
+
+            tblPeminjaman.setToolTipText(
+                "<html><b>" + judul + ":</b><br>" + isi + "</html>"
+            );
+        }
+
+        private String getIsi(Object obj) {
+            return (obj == null || obj.toString().trim().isEmpty())
+                    ? "-" : obj.toString();
+        }
+    });
+
+   
+
+
+       
+        // TextField readonly
+        jTextField2.setEditable(false);
+        jTextField3.setEditable(false);
+        jTextField4.setEditable(false);
+        jTextField5.setEditable(false);
+
+        // Event cari otomatis
+        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                cariData();
+            }
+        });
+        jComboBox1.addActionListener(evt -> cariData());
+
+        // Ambil data awal
         getData();
-        
+        SwingUtilities.invokeLater(() -> {
+        cekReminder();
+    });
     }
 
-    void getData() {
+  private void getData() {
+
     model.setRowCount(0);
 
     try {
-        String sql = "SELECT p.kode_peminjaman, u.username, b.judul, k.name_kategori, p.jumlah_pinjam, p.tanggal_pinjam, p.status FROM peminjaman p JOIN user u ON p.user_id = u.user_id JOIN buku b ON p.Buku_id = b.Buku_id JOIN kategori k ON b.kategori_id = k.kategori_id ";
+        String sql =
+    "SELECT p.kode_peminjaman, b.buku_id, u.username, b.judul, " +
+    "k.name_kategori, p.jumlah_pinjam, p.tanggal_pinjam, " +
+    "p.tanggal_kembali, p.status, p.denda, p.catatan " +
+    "FROM peminjaman p " +
+    "JOIN user u ON p.user_id = u.user_id " +
+    "JOIN buku b ON p.buku_id = b.buku_id " +
+    "JOIN kategori k ON b.kategori_id = k.kategori_id " +
+    "WHERE p.user_id = ?";
+
 
         pst = conn.prepareStatement(sql);
+        pst.setString(1, id);
         rs = pst.executeQuery();
 
         while (rs.next()) {
-            Object[] row = {
+            model.addRow(new Object[]{
                 rs.getString("kode_peminjaman"),
+                rs.getInt("buku_id"),
                 rs.getString("username"),
                 rs.getString("judul"),
                 rs.getString("name_kategori"),
                 rs.getInt("jumlah_pinjam"),
                 rs.getDate("tanggal_pinjam"),
-                rs.getString("status")
-            };
-            model.addRow(row);
+                rs.getDate("tanggal_kembali"),
+                rs.getString("status"),
+                rs.getString("denda"),
+                rs.getString("catatan") // ✅ tampil di tabel
+            });
         }
+
     } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, e.getMessage());
+        JOptionPane.showMessageDialog(this,
+            "Gagal mengambil data:\n" + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE
+        );
     }
 }
 
+    void bersih() {
+        jTextField1.setText("");
+        jTextField2.setText("");
+        jTextField3.setText("");
+        jTextField4.setText("");
+        jTextField5.setText("");
+        txtJumlah.setText("");
+    }
+  
+    // ================= HITUNG SELISIH HARI =================
+    private long hitungHari(Date tglKembali) {
+        if (tglKembali == null) return Long.MAX_VALUE;
+        LocalDate today = LocalDate.now();
+        LocalDate batas = tglKembali.toLocalDate();
+        return ChronoUnit.DAYS.between(today, batas);
+    }
 
-    
+  private void cekReminder() {
+
+    if (reminderSudahTampil) return;
+
+    for (int i = 0; i < model.getRowCount(); i++) {
+
+        String status = model.getValueAt(i, 8).toString().toLowerCase();
+        Date tglKembali = (Date) model.getValueAt(i, 7);
+
+        if (!status.equals("dipinjam") || tglKembali == null) continue;
+
+        long sisaHari = ChronoUnit.DAYS.between(
+                LocalDate.now(),
+                tglKembali.toLocalDate()
+        );
+
+        // 🔴 HARI INI LANGSUNG TELAT
+        if (sisaHari <= 0) {
+            reminderSudahTampil = true;
+            JOptionPane.showMessageDialog(this,
+                "⛔ TERLAMBAT!\n\nBatas pengembalian buku adalah HARI INI.\nSegera kembalikan buku!",
+                "Pengembalian Terlambat",
+                JOptionPane.ERROR_MESSAGE
+            );
+            break;
+        }
+
+        // 🟠 Sisa 1 hari
+        if (sisaHari == 1) {
+            reminderSudahTampil = true;
+            JOptionPane.showMessageDialog(this,
+                "⚠ PERINGATAN!\n\nBesok adalah batas pengembalian buku.\nSegera kembalikan untuk menghindari denda.",
+                "Reminder Pengembalian",
+                JOptionPane.WARNING_MESSAGE
+            );
+            break;
+        }
+    }
+}
+
+    // ================= CEK DISABLE PERPANJANGAN =================
+    private void cekDisablePerpanjangan(int row) {
+        String status = model.getValueAt(row, 8).toString().toLowerCase();
+        btnPerpanjang.setEnabled(status.equals("dipinjam"));
+    }
+
+  private void cariData() {
+
+    model.setRowCount(0);
+
+    String keyword = jTextField1.getText().trim();
+    String statusFilter = jComboBox1.getSelectedItem().toString();
+
+    try {
+        String sql =
+    "SELECT p.kode_peminjaman, b.buku_id, u.username, b.judul, " +
+    "k.name_kategori, p.jumlah_pinjam, p.tanggal_pinjam, " +
+    "p.tanggal_kembali, p.status, p.denda, p.catatan " +
+    "FROM peminjaman p " +
+    "JOIN user u ON p.user_id = u.user_id " +
+    "JOIN buku b ON p.buku_id = b.buku_id " +
+    "JOIN kategori k ON b.kategori_id = k.kategori_id " +
+    "WHERE p.user_id = ?";
+
+
+        if (!keyword.isEmpty()) {
+            sql += "AND b.judul LIKE ? ";
+        }
+
+        if (!statusFilter.equals("Semua")) {
+            sql += "AND p.status = ? ";
+        }
+
+        pst = conn.prepareStatement(sql);
+
+        int i = 1;
+        pst.setString(i++, id);
+
+        if (!keyword.isEmpty()) {
+            pst.setString(i++, "%" + keyword + "%");
+        }
+
+        if (!statusFilter.equals("Semua")) {
+            pst.setString(i++, statusFilter);
+        }
+
+        rs = pst.executeQuery();
+
+        while (rs.next()) {
+            model.addRow(new Object[]{
+                rs.getString("kode_peminjaman"),
+                rs.getInt("buku_id"),
+                rs.getString("username"),
+                rs.getString("judul"),
+                rs.getString("name_kategori"),
+                rs.getInt("jumlah_pinjam"),
+                rs.getDate("tanggal_pinjam"),
+                rs.getDate("tanggal_kembali"),
+                rs.getString("status"),
+                rs.getString("denda"),
+                rs.getString("catatan") 
+            });
+        }
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this,
+            "Gagal mencari data:\n" + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE
+        );
+    }
+}
+
+   private void resetForm() {
+    jTextField2.setText("");
+    jTextField3.setText("");
+    jTextField4.setText("");
+    txtJumlah.setText("");
+
+    tblPeminjaman.clearSelection();
+    btnPerpanjang.setEnabled(false);
+    jButton2.setEnabled(false);
+}
+
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -90,24 +389,25 @@ public class transaksi_peminjaman_user extends javax.swing.JPanel {
         jScrollPane2 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList<>();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tblPeminjaman = new javax.swing.JTable();
         jTextField1 = new javax.swing.JTextField();
         jComboBox1 = new javax.swing.JComboBox<>();
-        jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
+        btnPerpanjang = new javax.swing.JButton();
+        btnselesaidikembalikan = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         id_user = new javax.swing.JLabel();
         username = new javax.swing.JLabel();
-        jButton5 = new javax.swing.JButton();
+        btn_refresh = new javax.swing.JButton();
         jTextField2 = new javax.swing.JTextField();
         jTextField3 = new javax.swing.JTextField();
         jTextField4 = new javax.swing.JTextField();
         jTextField5 = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        txtJumlah = new javax.swing.JTextField();
 
         jList1.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
@@ -116,7 +416,7 @@ public class transaksi_peminjaman_user extends javax.swing.JPanel {
         });
         jScrollPane2.setViewportView(jList1);
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tblPeminjaman.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -127,24 +427,51 @@ public class transaksi_peminjaman_user extends javax.swing.JPanel {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
+        tblPeminjaman.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblPeminjamanMouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(tblPeminjaman);
 
-        jTextField1.setText("name buku");
-
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "status", " " }));
-
-        jButton1.setText("cari");
-
-        jButton2.setText("batalkan peminjaman");
-
-        jButton3.setText("Ajukan Perpanjangan pengembalian");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+        jTextField1.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTextField1FocusGained(evt);
+            }
+        });
+        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextField1KeyReleased(evt);
             }
         });
 
-        jButton4.setText("Selesai Dikembalikan");
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "status", " " }));
+        jComboBox1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBox1ActionPerformed(evt);
+            }
+        });
+
+        jButton2.setText("batalkan peminjaman");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
+        btnPerpanjang.setText("Ajukan Perpanjangan pengembalian");
+        btnPerpanjang.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPerpanjangActionPerformed(evt);
+            }
+        });
+
+        btnselesaidikembalikan.setText("Selesai Dikembalikan");
+        btnselesaidikembalikan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnselesaidikembalikanActionPerformed(evt);
+            }
+        });
 
         jLabel1.setText("Kode Peminjaman");
 
@@ -158,7 +485,14 @@ public class transaksi_peminjaman_user extends javax.swing.JPanel {
 
         username.setText("Username");
 
-        jButton5.setText("Refresh");
+        btn_refresh.setText("Refresh");
+        btn_refresh.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_refreshActionPerformed(evt);
+            }
+        });
+
+        jLabel5.setText("Jumlah Buku yang dipinjam");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -169,69 +503,83 @@ public class transaksi_peminjaman_user extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jButton2)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btnPerpanjang)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(btnselesaidikembalikan, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(btn_refresh))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(127, 127, 127)
+                                        .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 718, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jComboBox1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addContainerGap())
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1)
                             .addComponent(jLabel2)
                             .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(127, 127, 127)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel4)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel4)
+                                .addGap(0, 0, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel3)
-                                    .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel3))
+                                .addGap(46, 46, 46)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(username)
-                                    .addComponent(id_user, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                    .addComponent(jScrollPane1)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 718, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButton2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jButton5))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(127, 127, 127)
-                                .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                                    .addComponent(jLabel5)
+                                    .addComponent(txtJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 91, Short.MAX_VALUE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(id_user, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(username, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)))))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(9, 9, 9)
+                .addGap(10, 10, 10)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(16, 16, 16)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 405, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(38, 38, 38)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel3)
-                    .addComponent(id_user))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(43, 43, 43)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel1)
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel5)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(id_user, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(username)
-                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(15, 15, 15))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)))
+                        .addComponent(txtJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(15, 15, 15))
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(username, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGap(18, 18, 18))))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(jLabel4))
@@ -242,78 +590,416 @@ public class transaksi_peminjaman_user extends javax.swing.JPanel {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton2)
-                    .addComponent(jButton3)
-                    .addComponent(jButton4)
-                    .addComponent(jButton5))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnPerpanjang)
+                    .addComponent(btnselesaidikembalikan)
+                    .addComponent(btn_refresh))
+                .addContainerGap(17, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-// 1. Membuat area teks untuk input alasan
-    javax.swing.JTextArea txtAlasan = new javax.swing.JTextArea(3, 20);
-    txtAlasan.setLineWrap(true);
-    txtAlasan.setWrapStyleWord(true);
-    javax.swing.JScrollPane scrollPane = new javax.swing.JScrollPane(txtAlasan);
+    private void btnPerpanjangActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPerpanjangActionPerformed
+int row = tblPeminjaman.getSelectedRow();
+if (row == -1) {
+    JOptionPane.showMessageDialog(this,
+        "Pilih data peminjaman terlebih dahulu!");
+    return;
+}
 
-    // 2. Menyusun tampilan dalam satu panel
-    javax.swing.JPanel panel = new javax.swing.JPanel();
-    panel.setLayout(new javax.swing.BoxLayout(panel, javax.swing.BoxLayout.Y_AXIS));
-    
-    // Menambahkan Label Informasi (Static)
-    panel.add(new javax.swing.JLabel("INFO: Maksimal perpanjangan adalah 5 hari."));
-    panel.add(javax.swing.Box.createVerticalStrut(10)); // Jarak
-    
-    // Menambahkan Label Input
-    panel.add(new javax.swing.JLabel("Isi alasan perpanjangan:"));
-    panel.add(scrollPane);
+// ambil data dari JTable
+String kode = model.getValueAt(row, 0).toString();
+String bukuId = model.getValueAt(row, 1).toString();
+Date tglPinjam = (Date) model.getValueAt(row, 6);
+String user = model.getValueAt(row, 2).toString();
 
-    // 3. Memunculkan Dialog
-    int result = javax.swing.JOptionPane.showConfirmDialog(this, panel, 
-            "Form Perpanjangan Buku", javax.swing.JOptionPane.OK_CANCEL_OPTION, 
-            javax.swing.JOptionPane.PLAIN_MESSAGE);
+// validasi status
+String status = model.getValueAt(row, 8).toString().toLowerCase();
+if (!status.equals("dipinjam")) {
+    JOptionPane.showMessageDialog(this,
+        "❌ Tidak bisa diajukan perpanjangan!");
+    return;
+}
 
-    // 4. Proses setelah klik OK
-    if (result == javax.swing.JOptionPane.OK_OPTION) {
-        String alasan = txtAlasan.getText().trim();
-        
-        if (alasan.isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Alasan tidak boleh kosong!", "Error", 0);
-        } else {
-            // Status otomatis jadi Pending
-            String status = "PENDING";
-            
-            javax.swing.JOptionPane.showMessageDialog(this, 
-                "Permohonan Terkirim!\n" +
-                "Status: " + status + "\n" +
-                "Alasan: " + alasan, 
-                "Konfirmasi", 1);
-        }
+// dialog alasan
+JTextArea txtAlasan = new JTextArea(3, 20);
+int result = JOptionPane.showConfirmDialog(
+    this,
+    new JScrollPane(txtAlasan),
+    "Ajukan Perpanjangan",
+    JOptionPane.OK_CANCEL_OPTION
+);
+
+if (result != JOptionPane.OK_OPTION) return;
+
+String alasan = txtAlasan.getText().trim();
+if (alasan.isEmpty()) {
+    JOptionPane.showMessageDialog(this,
+        "Alasan wajib diisi!");
+    return;
+}
+
+// ===== SQL TANPA UBAH STRUKTUR DB =====
+String sql =
+    "UPDATE peminjaman SET status = ?, catatan_pengajuan = ? " +
+    "WHERE kode_peminjaman = ? " +
+    "AND buku_id = ? " +
+    "AND tanggal_pinjam = ? " +
+    "AND user_id = ? " +
+    "AND status = 'dipinjam'";
+
+try (Connection conn = koneksi.koneksi.koneksiDB();
+     PreparedStatement ps = conn.prepareStatement(sql)) {
+
+    ps.setString(1, "diperpanjang");
+    ps.setString(2, alasan);
+    ps.setString(3, kode);
+    ps.setString(4, bukuId);
+    ps.setDate(5, tglPinjam);
+    ps.setString(6, session.getU_id());
+
+    int affected = ps.executeUpdate();
+
+    if (affected == 0) {
+        JOptionPane.showMessageDialog(this,
+            "⚠ Data tidak ditemukan atau sudah berubah.");
+        return;
     }
-    }//GEN-LAST:event_jButton3ActionPerformed
+
+    // update JTable (1 baris saja)
+    model.setValueAt("diperpanjang", row, 8);
+    btnPerpanjang.setEnabled(false);
+
+    JOptionPane.showMessageDialog(this,
+        "📨 Pengajuan perpanjangan dikirim.");
+
+} catch (Exception e) {
+    JOptionPane.showMessageDialog(this,
+        e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+}
+
+
+
+
+    }//GEN-LAST:event_btnPerpanjangActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+
+    int row = tblPeminjaman.getSelectedRow();
+    if (row == -1) {
+        JOptionPane.showMessageDialog(this, "Pilih data terlebih dahulu!");
+        return;
+    }
+
+    String status = model.getValueAt(row, 8).toString().toLowerCase();
+    if (!status.equals("pending")) {
+        JOptionPane.showMessageDialog(this,
+            "❌ Hanya peminjaman dengan status PENDING yang bisa dibatalkan.");
+        return;
+    }
+
+    String kodePinjam = model.getValueAt(row, 0).toString();
+    String bukuId = model.getValueAt(row, 1).toString();
+    int jumlahLama = Integer.parseInt(model.getValueAt(row, 5).toString());
+
+    JTextField txtJumlahBaru = new JTextField();
+
+    Object[] pesan = {
+        "Jumlah yang ingin dipertahankan:",
+        txtJumlahBaru,
+        "\nKosongkan jika ingin membatalkan seluruh peminjaman"
+    };
+
+    Object[] opsi = {"Ubah Jumlah", "Batalkan Semua", "Batal"};
+
+    int pilih = JOptionPane.showOptionDialog(
+        this,
+        pesan,
+        "Batalkan Peminjaman",
+        JOptionPane.YES_NO_CANCEL_OPTION,
+        JOptionPane.QUESTION_MESSAGE,
+        null,
+        opsi,
+        opsi[0]
+    );
+
+    if (pilih == 2 || pilih == JOptionPane.CLOSED_OPTION) return;
+
+    try (Connection conn = koneksi.koneksi.koneksiDB()) {
+
+        // ================= BATALKAN SEMUA =================
+        if (pilih == 1) {
+
+            String sqlDelete = "DELETE FROM peminjaman WHERE kode_peminjaman = ?";
+            PreparedStatement ps = conn.prepareStatement(sqlDelete);
+            ps.setString(1, kodePinjam);
+            ps.executeUpdate();
+
+            String sqlStok =
+                "UPDATE buku SET stok = stok + ? WHERE buku_id = ?";
+            ps = conn.prepareStatement(sqlStok);
+            ps.setInt(1, jumlahLama);
+            ps.setString(2, bukuId);
+            ps.executeUpdate();
+
+            model.removeRow(row);
+
+            JOptionPane.showMessageDialog(this,
+                "✅ Peminjaman berhasil dibatalkan sepenuhnya.");
+
+        }
+        // ================= UBAH JUMLAH =================
+        else if (pilih == 0) {
+
+            if (txtJumlahBaru.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                    "Jumlah tidak boleh kosong!");
+                return;
+            }
+
+            int jumlahBaru = Integer.parseInt(txtJumlahBaru.getText());
+
+            if (jumlahBaru <= 0 || jumlahBaru >= jumlahLama) {
+                JOptionPane.showMessageDialog(this,
+                    "Jumlah harus lebih kecil dari jumlah lama!");
+                return;
+            }
+
+            int selisih = jumlahLama - jumlahBaru;
+
+            String sqlUpdate =
+                "UPDATE peminjaman SET jumlah_pinjam = ? WHERE kode_peminjaman = ?";
+            PreparedStatement ps = conn.prepareStatement(sqlUpdate);
+            ps.setInt(1, jumlahBaru);
+            ps.setString(2, kodePinjam);
+            ps.executeUpdate();
+
+            String sqlStok =
+                "UPDATE buku SET stok = stok + ? WHERE buku_id = ?";
+            ps = conn.prepareStatement(sqlStok);
+            ps.setInt(1, selisih);
+            ps.setString(2, bukuId);
+            ps.executeUpdate();
+
+            model.setValueAt(jumlahBaru, row, 5);
+
+            JOptionPane.showMessageDialog(this,
+                "✏ Jumlah peminjaman berhasil diperbarui.");
+        }
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this,
+            e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void tblPeminjamanMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblPeminjamanMouseClicked
+int row = tblPeminjaman.getSelectedRow();
+    if (row == -1) return;
+
+    // isi field
+    jTextField2.setText(model.getValueAt(row, 0).toString());
+    jTextField3.setText(model.getValueAt(row, 1).toString());
+    jTextField4.setText(model.getValueAt(row, 3).toString());
+    jTextField5.setText(usernamee);
+    txtJumlah.setText(model.getValueAt(row, 5).toString());
+
+    String status = model.getValueAt(row, 8).toString().toLowerCase();
+
+    // 🔒 LOGIKA TOMBOL
+    jButton2.setEnabled(status.equals("pending"));
+    btnPerpanjang.setEnabled(status.equals("dipinjam"));
+           // TODO add your handling code here:
+    }//GEN-LAST:event_tblPeminjamanMouseClicked
+
+    private void btnselesaidikembalikanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnselesaidikembalikanActionPerformed
+int row = tblPeminjaman.getSelectedRow();
+if (row == -1) {
+    JOptionPane.showMessageDialog(this, "Pilih data terlebih dahulu!");
+    return;
+}
+
+// ====== CEK STATUS ======
+Object val = model.getValueAt(row, 8); // index 8 untuk Status di JTable
+String status = (val != null) ? val.toString().trim().toLowerCase() : "";
+
+if (!status.equals("selesai")) {
+    JOptionPane.showMessageDialog(this,
+        "Buku belum dikonfirmasi admin!\nStatus saat ini: " + status.toUpperCase());
+    return;
+}
+
+int confirm = JOptionPane.showConfirmDialog(
+    this,
+    "Buku sudah selesai dikembalikan.\nKirim ke Riwayat Transaksi?",
+    "Konfirmasi",
+    JOptionPane.YES_NO_OPTION
+);
+if (confirm != JOptionPane.YES_OPTION) return;
+
+// ====== DATABASE TRANSAKSI ======
+Connection conn = null;
+PreparedStatement pstSelect = null;
+PreparedStatement pstInsert = null;
+PreparedStatement pstDelete = null;
+ResultSet rs = null;
+
+try {
+    conn = koneksi.koneksi.koneksiDB();
+    if (conn == null) {
+        JOptionPane.showMessageDialog(this, "Koneksi database gagal!");
+        return;
+    }
+
+    conn.setAutoCommit(false); // mulai transaksi
+
+    // ====== Ambil data lengkap dari DB berdasarkan kode_peminjaman ======
+    String kodePeminjaman = model.getValueAt(row, 0).toString(); // kolom kode_peminjaman
+    String sqlSelect = "SELECT * FROM peminjaman WHERE kode_peminjaman = ?";
+    pstSelect = conn.prepareStatement(sqlSelect);
+    pstSelect.setString(1, kodePeminjaman);
+    rs = pstSelect.executeQuery();
+
+    if (!rs.next()) {
+        JOptionPane.showMessageDialog(this, "Data peminjaman tidak ditemukan di database!");
+        return;
+    }
+
+    // Ambil semua field dari rs
+    String peminjaman_id      = rs.getString("peminjaman_id");
+    String user_id            = rs.getString("user_id");
+    String buku_id            = rs.getString("buku_id");
+    String kd_bk1             = rs.getString("kd_bk1");
+    String kd_bk2             = rs.getString("kd_bk2");
+    String kd_bk3             = rs.getString("kd_bk3");
+    String jumlah_pinjam      = rs.getString("jumlah_pinjam");
+    String tanggal_pinjam     = rs.getString("tanggal_pinjam");
+    String tanggal_kembali    = rs.getString("tanggal_kembali");
+    String Status             = rs.getString("Status");
+    String denda              = rs.getString("denda");
+    String bayar              = rs.getString("bayar");
+    String kembali            = rs.getString("kembali");
+    String total              = rs.getString("total");
+    String catatan            = rs.getString("catatan");
+    String catatan_pengajuan  = rs.getString("catatan_pengajuan");
+    String update_by          = rs.getString("update_by");
+    String update_at          = rs.getString("update_at");
+    String created_by         = rs.getString("created_by");
+    String created_at         = rs.getString("created_at");
+
+    // ====== INSERT ke riwayat_peminjaman ======
+    String sqlInsert = "INSERT INTO riwayat_peminjaman(" +
+            "peminjaman_id,kode_peminjaman,user_id,buku_id,kd_bk1,kd_bk2,kd_bk3," +
+            "jumlah_pinjam,tanggal_pinjam,tanggal_kembali,Status,denda,bayar,kembali,total," +
+            "catatan,catatan_pengajuan,update_by,update_at,created_by,created_at) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+    pstInsert = conn.prepareStatement(sqlInsert);
+    pstInsert.setString(1, peminjaman_id);
+    pstInsert.setString(2, kodePeminjaman);
+    pstInsert.setString(3, user_id);
+    pstInsert.setString(4, buku_id);
+    pstInsert.setString(5, kd_bk1);
+    pstInsert.setString(6, kd_bk2);
+    pstInsert.setString(7, kd_bk3);
+    pstInsert.setString(8, jumlah_pinjam);
+    pstInsert.setString(9, tanggal_pinjam);
+    pstInsert.setString(10, tanggal_kembali);
+    pstInsert.setString(11, Status);
+    pstInsert.setString(12, denda);
+    pstInsert.setString(13, bayar);
+    pstInsert.setString(14, kembali);
+    pstInsert.setString(15, total);
+    pstInsert.setString(16, catatan);
+    pstInsert.setString(17, catatan_pengajuan);
+    pstInsert.setString(18, update_by);
+    pstInsert.setString(19, update_at);
+    pstInsert.setString(20, created_by);
+    pstInsert.setString(21, created_at);
+
+    pstInsert.executeUpdate();
+
+    // ====== DELETE dari peminjaman ======
+    String sqlDelete = "DELETE FROM peminjaman WHERE peminjaman_id = ?";
+    pstDelete = conn.prepareStatement(sqlDelete);
+    pstDelete.setString(1, peminjaman_id);
+    pstDelete.executeUpdate();
+
+    conn.commit(); // commit transaksi
+
+    // ====== UPDATE UI ======
+    model.removeRow(row);
+    jTextField2.setText("");
+    jTextField3.setText("");
+    jTextField4.setText("");
+    jTextField5.setText("");
+
+    // Reload JTable supaya data terbaru terlihat
+   // loadPeminjaman(); 
+
+    JOptionPane.showMessageDialog(this, "📚 Data berhasil dipindahkan ke Riwayat Transaksi.");
+
+} catch (Exception e) {
+    try { if (conn != null) conn.rollback(); } catch (Exception ex) {}
+    e.printStackTrace(); // tampilkan error di console
+    JOptionPane.showMessageDialog(this, "Terjadi error: " + e.getMessage());
+} finally {
+    try { if (rs != null) rs.close(); } catch (Exception ex) {}
+    try { if (pstSelect != null) pstSelect.close(); } catch (Exception ex) {}
+    try { if (pstInsert != null) pstInsert.close(); } catch (Exception ex) {}
+    try { if (pstDelete != null) pstDelete.close(); } catch (Exception ex) {}
+    try { if (conn != null) conn.close(); } catch (Exception ex) {}
+}
+
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnselesaidikembalikanActionPerformed
+
+    private void jTextField1KeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyReleased
+ 
+        cariData();
+    
+    // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField1KeyReleased
+
+    private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jComboBox1ActionPerformed
+
+    private void jTextField1FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTextField1FocusGained
+
+        if (jTextField1.getText().equals("Cari username...")) {
+            jTextField1.setText("");
+        }
+            // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField1FocusGained
+
+    private void btn_refreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_refreshActionPerformed
+        getData();          
+    }//GEN-LAST:event_btn_refreshActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnPerpanjang;
+    private javax.swing.JButton btn_refresh;
+    private javax.swing.JButton btnselesaidikembalikan;
     private javax.swing.JLabel id_user;
-    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JList<String> jList1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
     private javax.swing.JTextField jTextField4;
     private javax.swing.JTextField jTextField5;
+    private javax.swing.JTable tblPeminjaman;
+    private javax.swing.JTextField txtJumlah;
     private javax.swing.JLabel username;
     // End of variables declaration//GEN-END:variables
 }

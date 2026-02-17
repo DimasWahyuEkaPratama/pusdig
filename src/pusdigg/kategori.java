@@ -51,7 +51,7 @@ public class kategori extends javax.swing.JPanel {
         getData();
     }
     
-    void getData() {
+void getData() {
     model.setRowCount(0);
 
     try {

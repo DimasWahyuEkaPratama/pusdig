@@ -9,11 +9,9 @@ import javax.swing.table.DefaultTableModel;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import koneksi.koneksi;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
-import pusdigg.buku;
 
 /**
  *

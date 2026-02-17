@@ -8,11 +8,9 @@ package pusdigg;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
+import org.jdesktop.swingx.prompt.PromptSupport;
 /**
  *
  * @author dppra
@@ -34,20 +32,24 @@ public class user extends javax.swing.JPanel {
     public user() {
         initComponents();
         
-        id_user.setText("SELAMAT DATANG"+id);
-        username.setText("ANDA LOGIN SEBAGAI"+usernamee);
+        id_user.setText(id);
+        username.setText(usernamee);
         conn = koneksi.koneksi.koneksiDB();
 
+        // PLACEHOLDER
+        PromptSupport.setPrompt("Masukkan NISN/NIP/NIK", jTextField5);
+        
         model = new DefaultTableModel();
         jTable1.setModel(model);
 
         // Tambahkan kolom tabel
         model.addColumn("user_id");
-        model.addColumn("Username");
+        model.addColumn("NISN/NIP/NIK");
         model.addColumn("Password");
         model.addColumn("Nama Lengkap");
         model.addColumn("Role");
         model.addColumn("Telp");
+        model.addColumn("Email");
         model.addColumn("Status");
         model.addColumn("Alamat"); 
         
@@ -67,15 +69,16 @@ public class user extends javax.swing.JPanel {
         rs = pst.executeQuery();
 
         while (rs.next()) {
-            Object[] obj = new Object[8];
+            Object[] obj = new Object[9];
             obj[0] = rs.getString("user_id");
-            obj[1] = rs.getString("username");
+            obj[1] = rs.getString("nomor");
             obj[2] = rs.getString("password");
             obj[3] = rs.getString("fullname");
             obj[4] = rs.getString("role");
             obj[5] = rs.getString("telp");
-            obj[6] = rs.getString("status");
-            obj[7] = rs.getString("alamat");
+            obj[6] = rs.getString("email");
+            obj[7] = rs.getString("status");
+            obj[8] = rs.getString("alamat");
           
             model.addRow(obj);
         }
@@ -94,8 +97,9 @@ public class user extends javax.swing.JPanel {
     txt_namalengkap.setText(model.getValueAt(i, 3).toString());
     cmb_role.setSelectedItem(model.getValueAt(i, 4).toString());
     txt_telp.setText(model.getValueAt(i, 5).toString());
-    cmb_status.setSelectedItem(model.getValueAt(i, 6).toString());
-    jTextArea1.setText(model.getValueAt(i, 7).toString());
+    txt_email.setText(model.getValueAt(i, 6).toString());
+    cmb_status.setSelectedItem(model.getValueAt(i, 7).toString());
+    jTextArea1.setText(model.getValueAt(i, 8).toString());
 }
 
 
@@ -109,7 +113,7 @@ public class user extends javax.swing.JPanel {
     jTextField5.setText("");
     cmb_role.setSelectedItem(null);   // kembali ke item pertama
     cmb_status.setSelectedItem(null);
-
+    txt_email.setText("");
     jTable1.clearSelection();       // hilangkan seleksi tabel (opsional)
 }
 
@@ -149,8 +153,10 @@ public class user extends javax.swing.JPanel {
         jButton5 = new javax.swing.JButton();
         id_user = new javax.swing.JLabel();
         username = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        txt_email = new javax.swing.JTextField();
 
-        jLabel1.setText("username");
+        jLabel1.setText("NISN/NIP/NIK");
 
         jLabel2.setText("password");
 
@@ -170,7 +176,7 @@ public class user extends javax.swing.JPanel {
 
         jLabel6.setText("status");
 
-        cmb_status.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "guru", "siswa", "lainnya" }));
+        cmb_status.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "guru", "siswa", "pengunjung" }));
 
         jLabel7.setText("alamat");
 
@@ -235,6 +241,8 @@ public class user extends javax.swing.JPanel {
 
         username.setText("jLabel8");
 
+        jLabel8.setText("Gmail");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -242,6 +250,9 @@ public class user extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGap(23, 23, 23)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel7)
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
@@ -254,36 +265,36 @@ public class user extends javax.swing.JPanel {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel7)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(jLabel6)
-                                .addComponent(txt_telp, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE)
-                                .addComponent(jLabel5)
-                                .addComponent(jLabel4)
-                                .addComponent(txt_namalengkap, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE)
-                                .addComponent(jLabel3)
-                                .addComponent(txt_password, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE)
-                                .addComponent(jLabel2)
-                                .addComponent(jLabel1)
-                                .addComponent(txt_username)
-                                .addComponent(cmb_role, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(cmb_status, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(jLabel8)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(txt_email, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(txt_telp, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE)
+                                .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(txt_namalengkap, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE)
+                                .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(txt_password, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE)
+                                .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(txt_username, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(cmb_role, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(cmb_status, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 46, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(168, 168, 168))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addGap(29, 29, 29)
-                                        .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 318, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(jButton5)
+                                        .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 379, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(username))
                                     .addComponent(id_user))
-                                .addGap(49, 49, 49))))))
+                                .addGap(49, 49, 49))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(jButton5)
+                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(168, 168, 168))))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -294,13 +305,15 @@ public class user extends javax.swing.JPanel {
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
-                            .addComponent(jTextField5, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jTextField5, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
+                                .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE))
                             .addComponent(txt_username))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(txt_password, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -316,15 +329,18 @@ public class user extends javax.swing.JPanel {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(txt_telp, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel6))
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jLabel6)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(cmb_status, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel8)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cmb_status, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(txt_email, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel7)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(29, 29, 29)
+                        .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -335,23 +351,24 @@ public class user extends javax.swing.JPanel {
                         .addComponent(id_user)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(username)))
-                .addContainerGap(23, Short.MAX_VALUE))
+                .addContainerGap(14, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
  try{
-           String sql = "insert into user (username,password,fullname,role,telp,status,alamat ,created_by, update_by)values(?,?,?,?,?,?,?,?,?)";
+           String sql = "insert into user (nomor,password,fullname,role,telp,email,status,alamat ,created_by, update_by)values(?,?,?,?,?,?,?,?,?,?)";
            pst = conn.prepareStatement(sql);
            pst.setString(1, txt_username.getText());
            pst.setString(2, txt_password.getText());
            pst.setString(3, txt_namalengkap.getText());
            pst.setString(4, (String) cmb_role.getItemAt(cmb_role.getSelectedIndex()));
            pst.setString(5, txt_telp.getText());
-           pst.setString(6, (String) cmb_status.getItemAt(cmb_status.getSelectedIndex()));
-           pst.setString(7, jTextArea1.getText());
-           pst.setString(8, session.getU_id());
+           pst.setString(6, txt_email.getText());
+           pst.setString(7, (String) cmb_status.getItemAt(cmb_status.getSelectedIndex()));
+           pst.setString(8, jTextArea1.getText());
            pst.setString(9, session.getU_id());
+           pst.setString(10, session.getU_id());
            pst.execute();
            JOptionPane.showMessageDialog(null, "Data berhasil disimpan!");
        } catch (Exception e) {
@@ -377,10 +394,10 @@ public class user extends javax.swing.JPanel {
     int id = Integer.parseInt(model.getValueAt(i, 0).toString());
 
     try {
-        String sql = "UPDATE user SET username=?, password=?, fullname=?, role=?, status=?, alamat=?, telp=?, update_by=? WHERE user_id=?";
+        String sql = "UPDATE user SET nomor=?, password=?, fullname=?, role=?, status=?, alamat=?, telp=?, email=?, update_by=? WHERE user_id=?";
         pst = conn.prepareStatement(sql);
 
-        pst.setString(1, username.getText());
+        pst.setString(1, txt_username.getText());
         pst.setString(2, txt_password.getText());
         pst.setString(3, txt_namalengkap.getText());
 
@@ -390,8 +407,9 @@ public class user extends javax.swing.JPanel {
 
         pst.setString(6, jTextArea1.getText());     // alamat
         pst.setString(7, txt_telp.getText());       // telp
-        pst.setString(8, session.getU_id());        // update_by
-        pst.setInt(9, id);                          // user_id
+        pst.setString(8, txt_email.getText());       // email
+        pst.setString(9, session.getU_id());        // update_by
+        pst.setInt(10, id);                          // user_id
 
         pst.executeUpdate();
         JOptionPane.showMessageDialog(null, "Update sukses");
@@ -447,7 +465,7 @@ public class user extends javax.swing.JPanel {
 
     try {
         String keyword = jTextField5.getText();
-        String sql = "SELECT * FROM user WHERE username LIKE ?";
+        String sql = "SELECT * FROM user WHERE nomor LIKE ?";
         pst = conn.prepareStatement(sql);
         pst.setString(1, "%" + keyword + "%");
         rs = pst.executeQuery();
@@ -455,7 +473,7 @@ public class user extends javax.swing.JPanel {
         while (rs.next()) {
             Object[] obj = new Object[8];
             obj[0] = rs.getString("user_id");
-            obj[1] = rs.getString("username");
+            obj[1] = rs.getString("nomor");
             obj[2] = rs.getString("password");
             obj[3] = rs.getString("fullname");
             obj[4] = rs.getString("role");
@@ -486,11 +504,13 @@ public class user extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable jTable1;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextField jTextField5;
+    private javax.swing.JTextField txt_email;
     private javax.swing.JTextField txt_namalengkap;
     private javax.swing.JTextField txt_password;
     private javax.swing.JTextField txt_telp;

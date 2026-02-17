@@ -27,7 +27,7 @@ public class sidebar_admin extends javax.swing.JFrame {
     user f = new user();
     itembuku g = new itembuku();
 
-    /**
+    /** 
      * Creates new form sidebar_admin
      */
     public sidebar_admin() {
@@ -44,10 +44,45 @@ public class sidebar_admin extends javax.swing.JFrame {
          
         CardLayout cl = (CardLayout) main.getLayout();
         cl.show(main, "sidebar_admin");
+        
+        // Daftar tombol yang mau diubah jadi teks murni
+            javax.swing.JButton[] menuButtons = {jButton1, jButton2, jButton3, jButton4, jButton5, jButton6, jButton8, jButton9};
 
+            for (javax.swing.JButton btn : menuButtons) {
+                stylingTeksMurni(btn);
+                addTextHoverEffect(btn);
+            }
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
+    private void stylingTeksMurni(javax.swing.JButton button) {
+        button.setContentAreaFilled(false); // Hilangkan background
+        button.setBorderPainted(false);     // Hilangkan border
+        button.setFocusPainted(false);      // Hilangkan garis kotak saat diklik
+        button.setOpaque(false);
+        button.setHorizontalAlignment(javax.swing.SwingConstants.LEFT); // Teks rata kiri
+        button.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14)); // Font lebih modern
+    }
+    
+    private void addTextHoverEffect(javax.swing.JButton button) {
+        java.awt.Color warnaAsli = java.awt.Color.BLACK; // Warna teks awal
+        java.awt.Color warnaHover = new java.awt.Color(255, 51, 102); // Warna saat kursor di atasnya
+
+        button.setForeground(warnaAsli);
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setForeground(warnaHover);
+                button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setForeground(warnaAsli);
+            }
+        });
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -60,62 +95,71 @@ public class sidebar_admin extends javax.swing.JFrame {
         jButton7 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
         jButton5 = new javax.swing.JButton();
         jButton6 = new javax.swing.JButton();
         jButton8 = new javax.swing.JButton();
         jButton9 = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
         main = new javax.swing.JLayeredPane();
 
         jButton7.setText("jButton7");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jPanel1.setBackground(new java.awt.Color(255, 204, 204));
+        jPanel1.setBackground(new java.awt.Color(102, 0, 255));
+        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jButton1.setText("Dashboard");
+        jButton1.setText("D");
+        jButton1.setAlignmentY(0.0F);
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
+        jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 140, 50, 30));
 
-        jButton2.setText("Kategori");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-
-        jButton3.setText("Buku");
+        jButton3.setText("B");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton3ActionPerformed(evt);
             }
         });
+        jPanel1.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 330, 50, -1));
 
-        jButton4.setText("Transaksi");
+        jButton2.setText("k");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+        jPanel1.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 270, 50, 30));
+
+        jButton4.setText("T");
         jButton4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton4ActionPerformed(evt);
             }
         });
+        jPanel1.add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 440, 50, 40));
 
-        jButton5.setText("Riwayat Transaksi");
+        jButton5.setText("R");
         jButton5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton5ActionPerformed(evt);
             }
         });
+        jPanel1.add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 500, 50, 40));
 
-        jButton6.setText("User");
+        jButton6.setText("U");
         jButton6.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton6ActionPerformed(evt);
             }
         });
+        jPanel1.add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 210, 50, 40));
 
         jButton8.setText("Logout");
         jButton8.addActionListener(new java.awt.event.ActionListener() {
@@ -123,57 +167,18 @@ public class sidebar_admin extends javax.swing.JFrame {
                 jButton8ActionPerformed(evt);
             }
         });
+        jPanel1.add(jButton8, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 580, -1, -1));
 
-        jButton9.setText("Kode Buku");
+        jButton9.setText("Kode");
         jButton9.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton9ActionPerformed(evt);
             }
         });
+        jPanel1.add(jButton9, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 390, 70, -1));
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(72, 72, 72)
-                        .addComponent(jButton8)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jButton9, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 216, Short.MAX_VALUE)
-                            .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addContainerGap())
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(58, 58, 58)
-                .addComponent(jButton1)
-                .addGap(18, 18, 18)
-                .addComponent(jButton2)
-                .addGap(18, 18, 18)
-                .addComponent(jButton3)
-                .addGap(18, 18, 18)
-                .addComponent(jButton9)
-                .addGap(18, 18, 18)
-                .addComponent(jButton6)
-                .addGap(18, 18, 18)
-                .addComponent(jButton4)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 33, Short.MAX_VALUE)
-                .addComponent(jButton8)
-                .addContainerGap())
-        );
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/sidebar.png"))); // NOI18N
+        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 110, 660));
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.LINE_START);
 
@@ -181,11 +186,11 @@ public class sidebar_admin extends javax.swing.JFrame {
         main.setLayout(mainLayout);
         mainLayout.setHorizontalGroup(
             mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 560, Short.MAX_VALUE)
+            .addGap(0, 692, Short.MAX_VALUE)
         );
         mainLayout.setVerticalGroup(
             mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 413, Short.MAX_VALUE)
+            .addGap(0, 660, Short.MAX_VALUE)
         );
 
         getContentPane().add(main, java.awt.BorderLayout.CENTER);
@@ -193,62 +198,62 @@ public class sidebar_admin extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-CardLayout cl = (CardLayout) main.getLayout();
-        cl.show(main, "dashboard_admin");        // TODO add your handling code here:        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-CardLayout cl = (CardLayout) main.getLayout();
-        cl.show(main, "kategori");        // TODO add your handling code here:        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton2ActionPerformed
-
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-CardLayout cl = (CardLayout) main.getLayout();
-        cl.show(main, "buku");
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton3ActionPerformed
-
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+    private void jButton9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton9ActionPerformed
         CardLayout cl = (CardLayout) main.getLayout();
-        cl.show(main, "transaksi_admin");
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton4ActionPerformed
+        cl.show(main, "itembuku");        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton9ActionPerformed
 
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-    CardLayout cl = (CardLayout) main.getLayout();
-        cl.show(main, "riwayat_transaksi_admin");
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton5ActionPerformed
+    private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
+        // 1️⃣ Konfirmasi logout
+        int confirm = JOptionPane.showConfirmDialog(null,
+            "Apakah Anda yakin ingin logout?", "Logout", JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            // 2️⃣ Bersihkan session (jika pakai session)
+            session.logout(); // contoh jika ada method clear() di session class
+
+            // 3️⃣ Tutup window saat ini
+            this.dispose(); // menutup JFrame saat ini
+
+            // 4️⃣ Buka window login
+            login Login = new login();
+            Login.setVisible(true);
+        }        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton8ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-    CardLayout cl = (CardLayout) main.getLayout();
+        CardLayout cl = (CardLayout) main.getLayout();
         cl.show(main, "user");
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton6ActionPerformed
 
-    private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
-    // 1️⃣ Konfirmasi logout
-    int confirm = JOptionPane.showConfirmDialog(null, 
-        "Apakah Anda yakin ingin logout?", "Logout", JOptionPane.YES_NO_OPTION);
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+            CardLayout cl = (CardLayout) main.getLayout();
+                cl.show(main, "riwayat_transaksi_admin");
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton5ActionPerformed
 
-    if (confirm == JOptionPane.YES_OPTION) {
-        // 2️⃣ Bersihkan session (jika pakai session)
-        session.logout(); // contoh jika ada method clear() di session class
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+                CardLayout cl = (CardLayout) main.getLayout();
+                cl.show(main, "transaksi_admin");
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton4ActionPerformed
 
-        // 3️⃣ Tutup window saat ini
-        this.dispose(); // menutup JFrame saat ini
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        CardLayout cl = (CardLayout) main.getLayout();
+                cl.show(main, "kategori");        // TODO add your handling code here:        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton2ActionPerformed
 
-        // 4️⃣ Buka window login
-        login Login = new login();
-        Login.setVisible(true);
-    }        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton8ActionPerformed
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        CardLayout cl = (CardLayout) main.getLayout();
+                cl.show(main, "buku");
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton3ActionPerformed
 
-    private void jButton9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton9ActionPerformed
-    CardLayout cl = (CardLayout) main.getLayout();
-        cl.show(main, "itembuku");        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton9ActionPerformed
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        CardLayout cl = (CardLayout) main.getLayout();
+        cl.show(main, "dashboard_admin");        // TODO add your handling code here:        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -295,6 +300,7 @@ CardLayout cl = (CardLayout) main.getLayout();
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
     private javax.swing.JButton jButton9;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLayeredPane main;
     // End of variables declaration//GEN-END:variables

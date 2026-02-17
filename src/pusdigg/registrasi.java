@@ -33,6 +33,7 @@ public class registrasi extends javax.swing.JFrame {
        jPasswordField1.setText("");
        namalengkap.setText("");
        telp.setText("");
+       email.setText("");
        jTextArea1.setText("");
        cmb_role.setSelectedItem("");
        cmb_status.setSelectedItem("");
@@ -69,6 +70,8 @@ public class registrasi extends javax.swing.JFrame {
         cmb_status = new javax.swing.JComboBox<>();
         jButton1 = new javax.swing.JButton();
         jLabel9 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        email = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -81,7 +84,7 @@ public class registrasi extends javax.swing.JFrame {
             }
         });
 
-        jLabel2.setText("username");
+        jLabel2.setText("NISN/NIP/NIK");
 
         jLabel3.setText("password");
 
@@ -113,7 +116,7 @@ public class registrasi extends javax.swing.JFrame {
         jTextArea1.setRows(5);
         jScrollPane1.setViewportView(jTextArea1);
 
-        cmb_status.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "guru", "siswa", "lainnya" }));
+        cmb_status.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "guru", "siswa", "pengunjung" }));
 
         jButton1.setText("Daftar");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -125,6 +128,8 @@ public class registrasi extends javax.swing.JFrame {
         jLabel9.setForeground(new java.awt.Color(255, 51, 51));
         jLabel9.setText("password masksimal8 karakter");
 
+        jLabel10.setText("Gmail");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -134,7 +139,7 @@ public class registrasi extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(218, 218, 218)
                         .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 40, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 44, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
@@ -158,24 +163,28 @@ public class registrasi extends javax.swing.JFrame {
                                     .addComponent(jPasswordField1)
                                     .addComponent(namalengkap)
                                     .addComponent(cmb_role, 0, 167, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addGap(0, 0, Short.MAX_VALUE)
                                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                             .addComponent(jLabel7)
                                             .addComponent(jLabel6))
-                                        .addGap(20, 20, 20))
-                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jLabel8)
-                                        .addGap(18, 18, 18)))))))
+                                        .addGap(24, 24, 24))
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel10)
+                                            .addComponent(jLabel8))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))))
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(telp)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cmb_status, 0, 167, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1)
+                    .addComponent(cmb_status, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(email))
                 .addGap(35, 35, 35))
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(233, 233, 233)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(87, 87, 87)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 434, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -209,17 +218,22 @@ public class registrasi extends javax.swing.JFrame {
                             .addComponent(namalengkap, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel8))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGap(27, 27, 27)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(cmb_role, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel5)))))
+                                    .addComponent(jLabel5)))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel8)
+                                .addGap(23, 23, 23))))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(25, 25, 25)
+                .addGap(9, 9, 9)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel10)
+                    .addComponent(email, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 30, Short.MAX_VALUE)
                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(46, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -254,12 +268,13 @@ if (usernameTxt.getText().trim().isEmpty() ||
     jPasswordField1.getPassword().length == 0 ||
     namalengkap.getText().trim().isEmpty() ||
     telp.getText().trim().isEmpty() ||
+    email.getText().trim().isEmpty() ||
     cmb_role.getSelectedItem() == null ||
     cmb_status.getSelectedItem() == null) {
 
     JOptionPane.showMessageDialog(
         null,
-        "Username, Password, Nama Lengkap, Telp, Role, dan Status WAJIB diisi!",
+        "NISN/NIP/NIK, Password, Nama Lengkap, Telp, Email, Role, dan Status WAJIB diisi!",
         "Peringatan",
         JOptionPane.WARNING_MESSAGE
     );
@@ -267,15 +282,16 @@ if (usernameTxt.getText().trim().isEmpty() ||
 }     
         
           try{
-           String sql = "insert into user (username,password,fullname,role,telp,status,alamat)values(?,?,?,?,?,?,?)";
+           String sql = "insert into user (nomor,password,fullname,role,telp,email,status,alamat)values(?,?,?,?,?,?,?,?)";
            pst = conn.prepareStatement(sql);
            pst.setString(1, usernameTxt.getText());
            pst.setString(2, jPasswordField1.getText());
            pst.setString(3, namalengkap.getText());
            pst.setString(4, (String) cmb_role.getItemAt(cmb_role.getSelectedIndex()));
            pst.setString(5, telp.getText());
-           pst.setString(6, (String) cmb_status.getItemAt(cmb_status.getSelectedIndex()));
-           pst.setString(7, jTextArea1.getText());
+           pst.setString(6, email.getText());
+           pst.setString(7, (String) cmb_status.getItemAt(cmb_status.getSelectedIndex()));
+           pst.setString(8, jTextArea1.getText());
            pst.execute();
            JOptionPane.showMessageDialog(null, "Berhasil Melakukan Registrasi");
        } catch (Exception e) {
@@ -329,8 +345,10 @@ if (usernameTxt.getText().trim().isEmpty() ||
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<String> cmb_role;
     private javax.swing.JComboBox<String> cmb_status;
+    private javax.swing.JTextField email;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;

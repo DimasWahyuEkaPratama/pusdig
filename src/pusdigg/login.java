@@ -12,19 +12,24 @@ package pusdigg;
 
 import java.sql.*;
 import javax.swing.*;
+import org.jdesktop.swingx.prompt.PromptSupport;
 
 public class login extends javax.swing.JFrame {
 
     /**
      * Creates new form NewJFrame
      */
-     Connection conn = null; //variabel conn berjenis Connection untuk Koneksi
+    Connection conn = null; //variabel conn berjenis Connection untuk Koneksi
     ResultSet rs = null; //variabel untuk menampilkan hasil  query
     PreparedStatement pst = null; // variabel untuk menampung query yg akan dieksekusi
     public login() {
         initComponents();
         conn = koneksi.koneksi.koneksiDB();
         this.setLocationRelativeTo(null);
+        
+        // PLACEHOLDER
+        PromptSupport.setPrompt("Masukkan NISN/NIP/NIK", jTextField1);
+        PromptSupport.setPrompt("Masukkan Password", jPasswordField1);
     }
 
     /**
@@ -42,18 +47,15 @@ public class login extends javax.swing.JFrame {
         jTextField1 = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         jPasswordField1 = new javax.swing.JPasswordField();
-        jLabel4 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox<>();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jLabel1.setText("LOGIN");
+        jLabel1.setText("PUSDIG");
 
-        jLabel2.setText("username");
+        jLabel2.setText("NISN/NIP/NIK");
 
         jTextField1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -63,11 +65,7 @@ public class login extends javax.swing.JFrame {
 
         jLabel3.setText("Password");
 
-        jLabel4.setText("Role");
-
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "admin", "user" }));
-
-        jButton1.setText("Login");
+        jButton1.setText("Masuk");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
@@ -81,48 +79,31 @@ public class login extends javax.swing.JFrame {
             }
         });
 
-        jButton3.setText("Exit");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(48, 48, 48)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(jLabel2)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addGap(55, 55, 55)
-                                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addGap(18, 18, 18)
-                                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addGap(55, 55, 55)
+                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel3)
-                                    .addComponent(jLabel4))
                                 .addGap(18, 18, 18)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jPasswordField1)
-                                    .addComponent(jComboBox1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(10, 10, 10)
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 86, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 67, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(85, 85, 85))))
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(85, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -137,14 +118,9 @@ public class login extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
                     .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(44, 44, 44)
+                .addGap(87, 87, 87)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
-                    .addComponent(jButton3)
                     .addComponent(jButton2))
                 .addContainerGap(75, Short.MAX_VALUE))
         );
@@ -168,47 +144,51 @@ public class login extends javax.swing.JFrame {
     }//GEN-LAST:event_jTextField1ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
- 
-        String id;
-        String username;
+    String id;
+    String nomor;
+    String username;
+    String role;
+    String status;
 
-        String sql = "select * from user where username=? AND password=? AND role=?";
+    String sql = "SELECT * FROM user WHERE nomor=? AND password=?";
 
-        try {
+    try {
+        pst = conn.prepareStatement(sql);
+        pst.setString(1, jTextField1.getText());
+        pst.setString(2, jPasswordField1.getText());
 
-            pst = conn.prepareStatement(sql);
-            pst.setString(1, jTextField1.getText());
-            pst.setString(2, jPasswordField1.getText());
-            pst.setObject(3, jComboBox1.getSelectedItem());
+        rs = pst.executeQuery();
 
-            rs = pst.executeQuery();
-            if (rs.next()) {
-                id = rs.getString("user_id");
-                username = rs.getString("username");
-               
+        if (rs.next()) {
+            id = rs.getString("user_id");
+            nomor = rs.getString("nomor");
+            username = rs.getString("fullname");
+            role = rs.getString("role");
+            status = rs.getString("status");
 
-                session.setU_id(id);
-                session.setU_username(username);
-                if (jComboBox1.getSelectedItem() == "admin"){
-                    sidebar_admin adm = new sidebar_admin();
-                    adm.setVisible(true);
-                    adm.setExtendedState(JFrame.MAXIMIZED_BOTH);
-                    this.setVisible(false);
-                    this.dispose();
-                }
-                if (jComboBox1.getSelectedItem() == "user"){
-                    sidebar_user user = new sidebar_user();
-                    user.setVisible(true);
-                    user.setExtendedState(JFrame.MAXIMIZED_BOTH);
-                    this.setVisible(false);
-                    this.dispose();
-                }
-            } else {
-                JOptionPane.showMessageDialog(null, "Username and Password is INCORRECT");
+            session.setU_id(id);
+            session.setU_nomor(nomor);
+            session.setU_username(username);
+            session.setU_status(status);
+
+            if (role.equalsIgnoreCase("admin")) {
+                sidebar_admin adm = new sidebar_admin();
+                adm.setVisible(true);
+                adm.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            } else if (role.equalsIgnoreCase("user")) {
+                U_peminjaman user = new U_peminjaman();
+                user.setVisible(true);
+                user.setExtendedState(JFrame.MAXIMIZED_BOTH);
             }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e);
+
+            this.dispose();
+        } else {
+            JOptionPane.showMessageDialog(null, "Username atau Password salah");
         }
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, e.getMessage());
+    }
+
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -219,13 +199,6 @@ public class login extends javax.swing.JFrame {
         this.dispose();
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
-
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-         if (JOptionPane.showConfirmDialog(this, "Exit Program ?", "Konfirmasi", JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION){
-            System.exit(0);
-        }
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton3ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -268,12 +241,9 @@ public class login extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPasswordField jPasswordField1;
     private javax.swing.JTextField jTextField1;

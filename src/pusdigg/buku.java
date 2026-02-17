@@ -170,23 +170,25 @@ loadKategori();
     }
 }
 
-private String generateKodeBuku(Connection conn) throws SQLException {
-    String kode = "BK-0001";
-    String sql = "SELECT kode_buku FROM buku_item ORDER BY bukuitem_id DESC LIMIT 1";
+private int getLastKodeBuku(Connection conn) throws SQLException {
+    int last = 0;
+
+    String sql = "SELECT MAX(CAST(SUBSTRING(kode_buku, 4) AS UNSIGNED)) FROM buku_item";
     PreparedStatement ps = conn.prepareStatement(sql);
     ResultSet rs = ps.executeQuery();
 
     if (rs.next()) {
-        String lastKode = rs.getString("kode_buku"); // BK-0009
-        int num = Integer.parseInt(lastKode.substring(3));
-        num++;
-        kode = String.format("BK-%04d", num);
+        last = rs.getInt(1); // kalau NULL -> 0
     }
 
     rs.close();
     ps.close();
-    return kode;
+
+    return last;
 }
+
+
+
 
     
     public class ButtonRenderer extends DefaultTableCellRenderer {
@@ -272,12 +274,12 @@ public class ButtonEditor extends DefaultCellEditor {
     }
 }
     
-    void loadKategori() {
+void loadKategori() {
     try {
         cmb_kategori.removeAllItems();
 
-        cmb_kategori.addItem("-- Pilih kategori --");
-                
+        cmb_kategori.addItem("Semua Kategori");
+
         String sql = "SELECT name_kategori FROM kategori ORDER BY name_kategori ASC";
         pst = conn.prepareStatement(sql);
         rs = pst.executeQuery();
@@ -286,13 +288,12 @@ public class ButtonEditor extends DefaultCellEditor {
             cmb_kategori.addItem(rs.getString("name_kategori"));
         }
 
-        System.out.println("Kategori loaded: " + cmb_kategori.getItemCount());
-
     } catch (Exception e) {
         JOptionPane.showMessageDialog(null,
             "Load kategori gagal: " + e.getMessage());
     }
 }
+
 
 
 
@@ -364,6 +365,8 @@ public class ButtonEditor extends DefaultCellEditor {
             deskripsi.setText("");
             upload.setText("");
             txt_cari.setText("");
+           cmb_kategori.setSelectedItem(null);
+            
         }
    
     public void setKategori(int id, String nama) {
@@ -542,49 +545,39 @@ public class ButtonEditor extends DefaultCellEditor {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(username)
+                    .addComponent(id_user))
+                .addGap(47, 47, 47))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jLabel8)
-                        .addComponent(jLabel6)
-                        .addComponent(jLabel5)
-                        .addComponent(jLabel4)
-                        .addComponent(jLabel3)
-                        .addComponent(jLabel2)
-                        .addComponent(penulis)
-                        .addComponent(tgl, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(penerbit)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
-                        .addComponent(stok))
-                    .addComponent(judul, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 201, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(rak, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txt_kategori, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(61, 61, 61)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(upload, javax.swing.GroupLayout.PREFERRED_SIZE, 201, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jButton2))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jButton3)
-                                .addGap(18, 18, 18)
-                                .addComponent(jButton4)
-                                .addGap(18, 18, 18)
-                                .addComponent(jButton5)
-                                .addGap(18, 18, 18)
-                                .addComponent(jButton6)))
-                        .addGap(0, 343, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(jLabel8)
+                                .addComponent(jLabel6)
+                                .addComponent(jLabel5)
+                                .addComponent(jLabel4)
+                                .addComponent(jLabel3)
+                                .addComponent(jLabel2)
+                                .addComponent(penulis)
+                                .addComponent(tgl, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(penerbit)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
+                                .addComponent(stok))
+                            .addComponent(judul, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 201, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(rak, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txt_kategori, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 689, Short.MAX_VALUE)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel1)
@@ -597,14 +590,22 @@ public class ButtonEditor extends DefaultCellEditor {
                                         .addComponent(cmb_cari, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE))
                                     .addGroup(jPanel1Layout.createSequentialGroup()
                                         .addComponent(jLabel9)
-                                        .addGap(0, 0, Short.MAX_VALUE)))))))
+                                        .addGap(0, 0, Short.MAX_VALUE))))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jButton3)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButton4)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButton5)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButton6)
+                                .addGap(0, 0, Short.MAX_VALUE))))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(upload, javax.swing.GroupLayout.PREFERRED_SIZE, 201, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton2)
+                        .addGap(0, 673, Short.MAX_VALUE)))
                 .addContainerGap())
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(username)
-                    .addComponent(id_user))
-                .addGap(47, 47, 47))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -666,20 +667,19 @@ public class ButtonEditor extends DefaultCellEditor {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 23, Short.MAX_VALUE)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(upload, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton2))
-                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(31, 31, 31)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jButton3)
                             .addComponent(jButton4)
                             .addComponent(jButton5)
-                            .addComponent(jButton6))
-                        .addGap(127, 127, 127))))
+                            .addComponent(jButton6))))
+                .addGap(27, 27, 27)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(upload, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2))
+                .addContainerGap(75, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -701,93 +701,128 @@ public class ButtonEditor extends DefaultCellEditor {
     }//GEN-LAST:event_judulActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-String format = "yyyy-MM-dd";
-SimpleDateFormat fm = new SimpleDateFormat(format);
-String Tanggal = fm.format(tgl.getDate());
-
-Connection conn = null;
-PreparedStatement pstBuku = null;
-PreparedStatement pstEksemplar = null;
-ResultSet rs = null;
-
-try {
-    conn = koneksi.koneksi.koneksiDB();
-    conn.setAutoCommit(false); // TRANSACTION START
-
     // =======================
-    // 1. INSERT BUKU
+    // VALIDASI INPUT
     // =======================
-    String sqlBuku = "INSERT INTO buku (Judul, Penulis, Penerbit, Tahun_Terbit, stok, kategori_id, rak_buku, deskripsi, imgsampul, created_by, update_by) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    if (judul.getText().trim().isEmpty()
+        || penulis.getText().trim().isEmpty()
+        || penerbit.getText().trim().isEmpty()
+        || stok.getText().trim().isEmpty()
+        || tgl.getDate() == null
+        || kategoriId == 0) {
 
-    pstBuku = conn.prepareStatement(sqlBuku, Statement.RETURN_GENERATED_KEYS);
+        JOptionPane.showMessageDialog(null, "Lengkapi semua data terlebih dahulu!");
+        return;
+    }
 
-    pstBuku.setString(1, judul.getText());
-    pstBuku.setString(2, penulis.getText());
-    pstBuku.setString(3, penerbit.getText());
-    pstBuku.setString(4, Tanggal);
-    pstBuku.setInt(5, Integer.parseInt(stok.getText()));
-    pstBuku.setInt(6, kategoriId);
-    pstBuku.setString(7, rak.getText());
-    pstBuku.setString(8, deskripsi.getText());
-    pstBuku.setString(9, pathGambar);
-    pstBuku.setString(10, session.getU_id());
-    pstBuku.setString(11, session.getU_id());
-
-    pstBuku.executeUpdate();
-
-    // =======================
-    // 2. AMBIL ID BUKU
-    // =======================
-    rs = pstBuku.getGeneratedKeys();
-    int bukuId = 0;
-    if (rs.next()) {
-        bukuId = rs.getInt(1);
+    int jumlahStok;
+    try {
+        jumlahStok = Integer.parseInt(stok.getText().trim());
+        if (jumlahStok <= 0) {
+            JOptionPane.showMessageDialog(null, "Stok harus lebih dari 0!");
+            return;
+        }
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(null, "Stok harus berupa angka!");
+        return;
     }
 
     // =======================
-    // 3. INSERT EKSEMPLAR
+    // FORMAT TANGGAL
     // =======================
-    int jumlahStok = Integer.parseInt(stok.getText());
+    String format = "yyyy-MM-dd";
+    SimpleDateFormat fm = new SimpleDateFormat(format);
+    String Tanggal = fm.format(tgl.getDate());
 
-    String sqlEksemplar = "INSERT INTO buku_item (buku_id, kode_buku, status, created_at) "
-                        + "VALUES (?, ?, ?, ?)";
+    Connection conn = null;
+    PreparedStatement pstBuku = null;
+    PreparedStatement pstEksemplar = null;
+    ResultSet rs = null;
 
-    pstEksemplar = conn.prepareStatement(sqlEksemplar);
+    try {
+        conn = koneksi.koneksi.koneksiDB();
+        conn.setAutoCommit(false); // TRANSACTION START
 
-    for (int i = 0; i < jumlahStok; i++) {
-        String kodeBuku = generateKodeBuku(conn);
+        // =======================
+        // 1. INSERT BUKU
+        // =======================
+        String sqlBuku = "INSERT INTO buku "
+                + "(judul, penulis, penerbit, tahun_terbit, stok, kategori_id, rak_buku, deskripsi, imgsampul, created_by, update_by) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        pstEksemplar.setInt(1, bukuId);
-        pstEksemplar.setString(2, kodeBuku);
-        pstEksemplar.setString(3, "tersedia");
-        pstEksemplar.setString(4, Tanggal);
-        pstEksemplar.executeUpdate();
+        pstBuku = conn.prepareStatement(sqlBuku, Statement.RETURN_GENERATED_KEYS);
+
+        pstBuku.setString(1, judul.getText());
+        pstBuku.setString(2, penulis.getText());
+        pstBuku.setString(3, penerbit.getText());
+        pstBuku.setString(4, Tanggal);
+        pstBuku.setInt(5, jumlahStok);
+        pstBuku.setInt(6, kategoriId);
+        pstBuku.setString(7, rak.getText());
+        pstBuku.setString(8, deskripsi.getText());
+        pstBuku.setString(9, pathGambar);
+        pstBuku.setString(10, session.getU_id());
+        pstBuku.setString(11, session.getU_id());
+
+        pstBuku.executeUpdate();
+
+        // =======================
+        // 2. AMBIL ID BUKU
+        // =======================
+        rs = pstBuku.getGeneratedKeys();
+        int bukuId = 0;
+        if (rs.next()) {
+            bukuId = rs.getInt(1);
+        }
+
+        // =======================
+        // 3. INSERT BUKU_ITEM
+        // =======================
+        String sqlEksemplar = "INSERT INTO buku_item "
+                + "(buku_id, kode_buku, status, created_at) "
+                + "VALUES (?, ?, ?, ?)";
+
+        pstEksemplar = conn.prepareStatement(sqlEksemplar);
+
+        int lastKode = getLastKodeBuku(conn);
+
+        for (int i = 1; i <= jumlahStok; i++) {
+            int nomor = lastKode + i;
+            String kodeBuku = String.format("BK-%04d", nomor);
+
+            pstEksemplar.setInt(1, bukuId);
+            pstEksemplar.setString(2, kodeBuku);
+            pstEksemplar.setString(3, "tersedia");
+            pstEksemplar.setString(4, Tanggal);
+            pstEksemplar.executeUpdate();
+        }
+
+
+        conn.commit(); // TRANSACTION SUCCESS
+
+        JOptionPane.showMessageDialog(null, "Data buku & eksemplar berhasil disimpan!");
+
+        // =======================
+        // REFRESH & RESET
+        // =======================
+        getData();
+        bersih();
+
+    } catch (Exception e) {
+        try {
+            if (conn != null) conn.rollback();
+        } catch (SQLException ex) {}
+
+        JOptionPane.showMessageDialog(null, "Gagal menyimpan data:\n" + e.getMessage());
+
+    } finally {
+        try {
+            if (rs != null) rs.close();
+            if (pstBuku != null) pstBuku.close();
+            if (pstEksemplar != null) pstEksemplar.close();
+            if (conn != null) conn.close();
+        } catch (SQLException e) {}
     }
-
-    conn.commit(); // TRANSACTION SUCCESS
-    JOptionPane.showMessageDialog(null, "Data buku & kode buku berhasil disimpan!");
-
-} catch (Exception e) {
-    try {
-        if (conn != null) conn.rollback();
-    } catch (SQLException ex) {}
-
-    JOptionPane.showMessageDialog(null, "Gagal menyimpan data: " + e);
-
-} finally {
-    try {
-        if (rs != null) rs.close();
-        if (pstBuku != null) pstBuku.close();
-        if (pstEksemplar != null) pstEksemplar.close();
-        if (conn != null) conn.close();
-    } catch (SQLException e) {}
-}
-
-// refresh
-getData();
-bersih();
-
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton3ActionPerformed
 
@@ -796,43 +831,95 @@ bersih();
     }//GEN-LAST:event_penerbitActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        try {
+  try {
     String format = "yyyy-MM-dd";
     SimpleDateFormat sdf = new SimpleDateFormat(format);
     String tahunTerbit = sdf.format(tgl.getDate());
 
+    conn.setAutoCommit(false);
+
+    // =====================
+    // ambil stok lama
+    // =====================
+    int stokLama = 0;
+    PreparedStatement psStok = conn.prepareStatement(
+        "SELECT stok FROM buku WHERE buku_id=?"
+    );
+    psStok.setInt(1, bukuId);
+    ResultSet rs = psStok.executeQuery();
+    if (rs.next()) stokLama = rs.getInt(1);
+    rs.close();
+    psStok.close();
+
+    int stokBaru = Integer.parseInt(stok.getText());
+
+    // =====================
+    // update buku
+    // =====================
     String sql = "UPDATE buku SET " +
             "judul=?, penulis=?, penerbit=?, tahun_terbit=?, " +
             "stok=?, kategori_id=?, rak_buku=?, deskripsi=?, imgsampul=?, update_by=? " +
             "WHERE buku_id=?";
 
     pst = conn.prepareStatement(sql);
-
     pst.setString(1, judul.getText());
     pst.setString(2, penulis.getText());
     pst.setString(3, penerbit.getText());
     pst.setString(4, tahunTerbit);
-    pst.setInt(5, Integer.parseInt(stok.getText()));
+    pst.setInt(5, stokBaru);
     pst.setInt(6, kategoriId);
     pst.setString(7, rak.getText());
     pst.setString(8, deskripsi.getText());
-    pst.setString(9, pathGambar);   // gambar baru / lama
+    pst.setString(9, pathGambar);
     pst.setString(10, session.getU_id());
-    pst.setInt(11, bukuId);         // PK
-
+    pst.setInt(11, bukuId);
     pst.executeUpdate();
+    pst.close();
+
+    int selisih = stokBaru - stokLama;
+
+    // =====================
+    // stok bertambah
+    // =====================
+    if (selisih > 0) {
+        int last = getLastKodeBuku(conn);
+        PreparedStatement ins = conn.prepareStatement(
+            "INSERT INTO buku_item (buku_id, kode_buku, status) VALUES (?, ?, 'tersedia')"
+        );
+
+        for (int i = 1; i <= selisih; i++) {
+            ins.setInt(1, bukuId);
+            ins.setString(2, String.format("BK-%04d", last + i));
+            ins.executeUpdate();
+        }
+        ins.close();
+    }
+
+    // =====================
+    // stok berkurang
+    // =====================
+    if (selisih < 0) {
+        PreparedStatement del = conn.prepareStatement(
+            "DELETE FROM buku_item WHERE buku_id=? AND status='tersedia' LIMIT ?"
+        );
+        del.setInt(1, bukuId);
+        del.setInt(2, Math.abs(selisih));
+        del.executeUpdate();
+        del.close();
+    }
+
+    conn.commit();
+
     JOptionPane.showMessageDialog(null, "Data berhasil diupdate");
 
 } catch (Exception e) {
+    try { conn.rollback(); } catch (Exception ex) {}
     JOptionPane.showMessageDialog(null, "Gagal update: " + e.getMessage());
 }
 
 getData();
 bersih();
 
-
-    
-        // TODO add your handling code here:
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
@@ -915,23 +1002,37 @@ if (result == JFileChooser.APPROVE_OPTION) {
     }//GEN-LAST:event_jTable1MouseClicked
 
     private void cmb_cariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmb_cariActionPerformed
-     // TODO add your handling code here:
     model.setRowCount(0);
 
     try {
         String judulCari = txt_cari.getText().trim();
         String kategori = cmb_kategori.getSelectedItem().toString();
 
-        String sql =
-            "SELECT b.*, k.name_kategori " +
-            "FROM buku b " +
-            "JOIN kategori k ON b.kategori_id = k.kategori_id " +
-            "WHERE k.name_kategori = ? " +
-            "AND b.judul LIKE ?";
+        String sql;
+        pst = null;
 
-        pst = conn.prepareStatement(sql);
-        pst.setString(1, kategori);
-        pst.setString(2, "%" + judulCari + "%");
+        if (kategori.equals("Semua Kategori")) {
+            sql =
+                "SELECT b.*, k.name_kategori " +
+                "FROM buku b " +
+                "JOIN kategori k ON b.kategori_id = k.kategori_id " +
+                "WHERE b.judul LIKE ?";
+
+            pst = conn.prepareStatement(sql);
+            pst.setString(1, "%" + judulCari + "%");
+
+        } else {
+            sql =
+                "SELECT b.*, k.name_kategori " +
+                "FROM buku b " +
+                "JOIN kategori k ON b.kategori_id = k.kategori_id " +
+                "WHERE k.name_kategori = ? " +
+                "AND b.judul LIKE ?";
+
+            pst = conn.prepareStatement(sql);
+            pst.setString(1, kategori);
+            pst.setString(2, "%" + judulCari + "%");
+        }
 
         rs = pst.executeQuery();
 
@@ -959,11 +1060,8 @@ if (result == JFileChooser.APPROVE_OPTION) {
         }
 
     } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, e);
+        JOptionPane.showMessageDialog(this, e.getMessage());
     }
-
-
-
     }//GEN-LAST:event_cmb_cariActionPerformed
 
     private void txt_kategoriActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_kategoriActionPerformed

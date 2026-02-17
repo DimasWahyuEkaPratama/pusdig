@@ -1,70 +1,107 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package pusdigg;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import java.io.FileOutputStream;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import javax.swing.JFileChooser;
+import java.io.File;
+
 /**
- *
- * @author ASUS vivobook
+ * Form Item Buku untuk Admin
+ * FITUR: Edit langsung di tabel (Kode Buku & Status) + Tombol SAVE
+ * @author snxx - Ambatukam - Raja Ngawi - Singa Harimaw 
+ * Kuntilanak Jago Ngoding - Sawit siapa ini
  */
 public class itembuku extends javax.swing.JPanel {
 
-    /**
-     * Creates new form itembuku
-     */
-    Connection conn = null;
-    ResultSet rs =null;
-    PreparedStatement pst = null;
-    
+    private Connection conn = null;
+    private ResultSet rs = null;
+    private PreparedStatement pst = null;
+
     private DefaultTableModel model;
-    private String sql;
-    
-    String id = session.getU_id();
-    String usernamee = session.getU_username();
+
+    private String id = session.getU_id();
+    private String usernamee = session.getU_username();
+
     public itembuku() {
         initComponents();
-        id_user.setText("SELAMAT DATANG"+id);
-        username.setText("ANDA LOGIN SEBAGAI"+usernamee);
 
+        // Set user info
+        id_user.setText("SELAMAT DATANG USER KE " + id);
+        username.setText("ANDA LOGIN SEBAGAI " + usernamee);
+
+        // Koneksi database
         conn = koneksi.koneksi.koneksiDB();
 
-        model = new DefaultTableModel();
+        // Setup table model DENGAN EDITABLE CELLS
+        model = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                // Hanya kolom Kode Buku (index 3) dan Status (index 4) yang bisa diedit
+                return column == 3 || column == 4;
+            }
+        };
+        
         jTable1.setModel(model);
 
         // Tambahkan kolom tabel
         model.addColumn("bukuitem_id");
         model.addColumn("buku_id");
         model.addColumn("Judul Buku");
-        model.addColumn("kode_buku");
-        model.addColumn("status");
+        model.addColumn("Kode Buku");
+        model.addColumn("Status");
 
         // Sembunyikan kolom ID
         jTable1.getColumnModel().getColumn(0).setMinWidth(0);
         jTable1.getColumnModel().getColumn(0).setMaxWidth(0);
         jTable1.getColumnModel().getColumn(0).setWidth(0);
-        jTable1.getColumnModel().getColumn(0).setWidth(0);
-        
+
         jTable1.getColumnModel().getColumn(1).setMinWidth(0);
         jTable1.getColumnModel().getColumn(1).setMaxWidth(0);
         jTable1.getColumnModel().getColumn(1).setWidth(0);
-        jTable1.getColumnModel().getColumn(1).setWidth(0);
+
+        // Load data awal
         getData();
+        hitungStatistik();
+        setupComboBox();
     }
 
-    void getData() {
+    /**
+     * Setup ComboBox untuk filter
+     */
+    private void setupComboBox() {
+        // Filter by Status
+        filterbystatus.removeAllItems();
+        filterbystatus.addItem("Semua Status");
+        filterbystatus.addItem("tersedia");
+        filterbystatus.addItem("dipinjam");
+        filterbystatus.addItem("rusak");
+        filterbystatus.addItem("hilang");
+
+        // Filter by Name and Kode Buku
+        filterbynameandkodebuku.removeAllItems();
+        filterbynameandkodebuku.addItem("Urutkan Berdasarkan");
+        filterbynameandkodebuku.addItem("Judul Buku (A-Z)");
+        filterbynameandkodebuku.addItem("Kode Buku (0-9)");
+    }
+
+    /**
+     * Ambil semua data buku item
+     */
+    private void getData() {
         model.setRowCount(0);
-        
+
         try {
-            String sql = 
+            String sql =
                 "SELECT bi.bukuitem_id, bi.buku_id, b.Judul, bi.kode_buku, bi.status " +
                 "FROM buku_item bi " +
-                "JOIN buku b ON bi.buku_id = b.buku_id";
+                "JOIN buku b ON bi.buku_id = b.Buku_id " +
+                "ORDER BY bi.bukuitem_id DESC";
 
             pst = conn.prepareStatement(sql);
             rs = pst.executeQuery();
@@ -73,22 +110,381 @@ public class itembuku extends javax.swing.JPanel {
                 Object[] obj = new Object[5];
                 obj[0] = rs.getInt("bukuitem_id");
                 obj[1] = rs.getInt("buku_id");
-                obj[2] = rs.getString("Judul");     // ✅ JUDUL BUKU
-                obj[3] = rs.getString("kode_buku"); // ✅ STRING
-                obj[4] = rs.getString("status");    // ✅ STRING
+                obj[2] = rs.getString("Judul");
+                obj[3] = rs.getString("kode_buku");
+                obj[4] = rs.getString("status");
                 model.addRow(obj);
             }
 
+            rs.close();
+            pst.close();
+
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e);
+            JOptionPane.showMessageDialog(null, "Error getData: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    
+    void pilihData() {
+        int i = jTable1.getSelectedRow();
+        jTextField1.setText(model.getValueAt(i, 2).toString());
+        jTextField2.setText(model.getValueAt(i, 3).toString());
+        String kategoriDariTabel = model.getValueAt(i, 4).toString();
+        jComboBox1.setSelectedItem(kategoriDariTabel);
+    }
+
+    
+         void bersih() {
+            jTextField1.setText("");
+            jTextField2.setText("");
+            jumlah_buku_tersedia.setText("");
+            jumlah_buku_terpinjam.setText("");
+            jumlah_buku_rusak.setText("");
+           jComboBox1.setSelectedItem(null);
+            
+        }
+    /**
+     * FITUR SEARCH - Cari berdasarkan Judul atau Kode Buku
+     */
+    private void cariData() {
+        model.setRowCount(0);
+        String keyword = searchstatus.getText().trim();
+        String filterStatus = filterbystatus.getSelectedItem().toString();
+        String sortBy = filterbynameandkodebuku.getSelectedItem().toString();
+
+        try {
+            StringBuilder query = new StringBuilder(
+                "SELECT bi.bukuitem_id, bi.buku_id, b.Judul, bi.kode_buku, bi.status " +
+                "FROM buku_item bi " +
+                "JOIN buku b ON bi.buku_id = b.Buku_id WHERE 1=1"
+            );
+
+            // Filter berdasarkan keyword (Judul atau Kode Buku)
+            if (!keyword.isEmpty()) {
+                query.append(" AND (b.Judul LIKE ? OR bi.kode_buku LIKE ?)");
+            }
+
+            // Filter berdasarkan Status
+            if (!filterStatus.equals("Semua Status")) {
+                query.append(" AND bi.status = ?");
+            }
+
+            // Sorting (Urutkan)
+            if (sortBy.equals("Judul Buku (A-Z)")) {
+                query.append(" ORDER BY b.Judul ASC");
+            } else if (sortBy.equals("Kode Buku (0-9)")) {
+                query.append(" ORDER BY bi.kode_buku ASC");
+            } else {
+                query.append(" ORDER BY bi.bukuitem_id DESC");
+            }
+
+            pst = conn.prepareStatement(query.toString());
+
+            int paramIndex = 1;
+
+            // Set parameter untuk keyword
+            if (!keyword.isEmpty()) {
+                pst.setString(paramIndex++, "%" + keyword + "%");
+                pst.setString(paramIndex++, "%" + keyword + "%");
+            }
+
+            // Set parameter untuk status
+            if (!filterStatus.equals("Semua Status")) {
+                pst.setString(paramIndex++, filterStatus);
+            }
+
+            rs = pst.executeQuery();
+
+            while (rs.next()) {
+                Object[] obj = new Object[5];
+                obj[0] = rs.getInt("bukuitem_id");
+                obj[1] = rs.getInt("buku_id");
+                obj[2] = rs.getString("Judul");
+                obj[3] = rs.getString("kode_buku");
+                obj[4] = rs.getString("status");
+                model.addRow(obj);
+            }
+
+            rs.close();
+            pst.close();
+
+            // Update statistik setelah filter
+            hitungStatistik();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error cariData: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
+     * SIMPAN SEMUA PERUBAHAN DI TABEL KE DATABASE
+     * Ini dipanggil ketika tombol SAVE diklik
      */
+private void saveAllChanges() {
+    try {
+        boolean hasError = false;
+        int savedCount = 0;
+        StringBuilder errorDetails = new StringBuilder();
+
+        for (int i = 0; i < jTable1.getRowCount(); i++) {
+            int bukuItemId = (int) jTable1.getValueAt(i, 0);
+            String kodeBuku = jTable1.getValueAt(i, 3).toString().trim();
+
+            Object statusObj = jTable1.getValueAt(i, 4);
+            String status = (statusObj != null)
+                    ? statusObj.toString().trim().toLowerCase()
+                    : "";
+
+            // ===== VALIDASI =====
+            if (kodeBuku.isEmpty()) {
+                errorDetails.append("❌ Baris ").append(i + 1)
+                        .append(": Kode buku kosong\n");
+                hasError = true;
+                continue;
+            }
+
+            // hanya boleh: tersedia, hilang, rusak
+            if (!(status.equals("tersedia")
+                || status.equals("hilang")
+                || status.equals("rusak"))) {
+
+                String tampil = status.isEmpty() ? "[KOSONG]" : status;
+
+                errorDetails.append("❌ Baris ").append(i + 1)
+                        .append(": Status tidak valid (")
+                        .append(tampil).append(")\n")
+                        .append("   Status yang diperbolehkan: hilang dan rusak\n\n");
+                hasError = true;
+                continue;
+            }
+
+            // ===== UPDATE =====
+            String sql = "UPDATE buku_item SET kode_buku=?, status=? WHERE bukuitem_id=?";
+            pst = conn.prepareStatement(sql);
+            pst.setString(1, kodeBuku);
+            pst.setString(2, status);
+            pst.setInt(3, bukuItemId);
+
+            if (pst.executeUpdate() > 0) savedCount++;
+            pst.close();
+        }
+
+        // ===== HASIL =====
+        if (hasError) {
+            JOptionPane.showMessageDialog(null,
+                "⚠️ Sebagian data gagal disimpan!\n\n" +
+                errorDetails +
+                "\n✅ Berhasil disimpan: " + savedCount + " baris\n" +
+                "Perbaiki data yang error lalu SAVE lagi.",
+                "Peringatan",
+                JOptionPane.WARNING_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(null,
+                "✅ Semua perubahan berhasil disimpan!\nTotal: " + savedCount + " baris",
+                "Sukses",
+                JOptionPane.INFORMATION_MESSAGE);
+        }
+
+        cariData();
+        hitungStatistik();
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null,
+            "Error saat menyimpan: " + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
+    }
+}
+
+private boolean isValidStatus(String status) {
+    return status.equals("tersedia") || status.equals("dipinjam") 
+        || status.equals("rusak") || status.equals("hilang");
+}
+
+    /**
+     * HITUNG STATISTIK - Jumlah buku per status
+     */
+    private void hitungStatistik() {
+        try {
+            // Hitung buku tersedia
+            String sqlTersedia = "SELECT COUNT(*) AS total FROM buku_item WHERE status = 'tersedia'";
+            pst = conn.prepareStatement(sqlTersedia);
+            rs = pst.executeQuery();
+            if (rs.next()) {
+                jumlah_buku_tersedia.setText("Tersedia: " + rs.getInt("total"));
+            }
+            rs.close();
+            pst.close();
+
+            // Hitung buku dipinjam
+            String sqlDipinjam = "SELECT COUNT(*) AS total FROM buku_item WHERE status = 'dipinjam'";
+            pst = conn.prepareStatement(sqlDipinjam);
+            rs = pst.executeQuery();
+            if (rs.next()) {
+                jumlah_buku_terpinjam.setText("Dipinjam: " + rs.getInt("total"));
+            }
+            rs.close();
+            pst.close();
+
+            // Hitung buku rusak
+            String sqlRusak = "SELECT COUNT(*) AS total FROM buku_item WHERE status = 'rusak'";
+            pst = conn.prepareStatement(sqlRusak);
+            rs = pst.executeQuery();
+            if (rs.next()) {
+                jumlah_buku_rusak.setText("Rusak: " + rs.getInt("total"));
+            }
+            rs.close();
+            pst.close();
+
+            // Hitung buku hilang
+            String sqlHilang = "SELECT COUNT(*) AS total FROM buku_item WHERE status = 'hilang'";
+            pst = conn.prepareStatement(sqlHilang);
+            rs = pst.executeQuery();
+            if (rs.next()) {
+                jumlah_buku_hilang.setText("Hilang: " + rs.getInt("total"));
+            }
+            rs.close();
+            pst.close();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error hitungStatistik: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * EXPORT KE EXCEL
+     */
+private void exportToExcel() {
+    System.out.println("EXPORT DIPANGGIL");
+
+    try {
+        // 1. Cek data tabel
+        int rowCount = jTable1.getRowCount();
+        System.out.println("Jumlah baris: " + rowCount);
+
+        if (rowCount == 0) {
+            JOptionPane.showMessageDialog(null,
+                    "Tidak ada data untuk di-export!",
+                    "Info",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 2. Tentukan folder default
+        String userHome = System.getProperty("user.home");
+        File folder = new File(userHome + File.separator + "Documents");
+        if (!folder.exists()) {
+            folder = new File(userHome + File.separator + "Desktop");
+        }
+
+        // 3. File chooser
+        JFileChooser chooser = new JFileChooser(folder);
+        chooser.setDialogTitle("Simpan File Excel");
+
+        String time = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss")
+                .format(new java.util.Date());
+        chooser.setSelectedFile(new File("Data_Item_Buku_" + time + ".xlsx"));
+
+        int choose = chooser.showSaveDialog(this);
+        if (choose != JFileChooser.APPROVE_OPTION) {
+            System.out.println("Export dibatalkan");
+            return;
+        }
+
+        File file = chooser.getSelectedFile();
+        String path = file.getAbsolutePath();
+        if (!path.toLowerCase().endsWith(".xlsx")) {
+            path += ".xlsx";
+        }
+
+        System.out.println("Saving to: " + path);
+
+        // 4. Buat workbook
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Data Item Buku");
+
+        // 5. Header
+        Row header = sheet.createRow(0);
+        String[] kolom = {"Judul Buku", "Kode Buku", "Status"};
+
+        for (int i = 0; i < kolom.length; i++) {
+            header.createCell(i).setCellValue(kolom[i]);
+        }
+
+        // 6. Isi data
+        for (int i = 0; i < rowCount; i++) {
+            Row row = sheet.createRow(i + 1);
+
+            row.createCell(0).setCellValue(
+                    jTable1.getValueAt(i, 2) != null
+                            ? jTable1.getValueAt(i, 2).toString()
+                            : ""
+            );
+
+            row.createCell(1).setCellValue(
+                    jTable1.getValueAt(i, 3) != null
+                            ? jTable1.getValueAt(i, 3).toString()
+                            : ""
+            );
+
+            row.createCell(2).setCellValue(
+                    jTable1.getValueAt(i, 4) != null
+                            ? jTable1.getValueAt(i, 4).toString()
+                            : ""
+            );
+        }
+
+        // 7. Autosize
+        for (int i = 0; i < kolom.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // 8. Simpan file
+        FileOutputStream out = new FileOutputStream(path);
+        System.out.println("Stream OK");
+
+        workbook.write(out);
+        System.out.println("WRITE OK");
+
+        out.close();
+        workbook.close();
+
+        // 9. Konfirmasi
+        File saved = new File(path);
+        if (saved.exists()) {
+            JOptionPane.showMessageDialog(null,
+                    "✅ Export BERHASIL!\n\n"
+                    + "Lokasi:\n" + path + "\n"
+                    + "Total Data: " + rowCount,
+                    "Sukses",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            // buka folder
+            try {
+                java.awt.Desktop.getDesktop().open(saved.getParentFile());
+            } catch (Exception ex) {
+                System.out.println("Tidak bisa buka folder");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null,
+                    "⚠ File tidak ditemukan setelah export!",
+                    "Warning",
+                    JOptionPane.WARNING_MESSAGE);
+        }
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null,
+                "❌ Export GAGAL:\n" + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
+    }
+}
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -98,13 +494,29 @@ public class itembuku extends javax.swing.JPanel {
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jComboBox1 = new javax.swing.JComboBox<>();
-        jButton1 = new javax.swing.JButton();
+        searchstatus = new javax.swing.JTextField();
+        filterbynameandkodebuku = new javax.swing.JComboBox<>();
+        cari = new javax.swing.JButton();
         id_user = new javax.swing.JLabel();
         username = new javax.swing.JLabel();
-        jComboBox2 = new javax.swing.JComboBox<>();
-        jButton2 = new javax.swing.JButton();
+        filterbystatus = new javax.swing.JComboBox<>();
+        button_excel = new javax.swing.JButton();
+        save = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
+        jumlah_buku_tersedia = new javax.swing.JLabel();
+        jPanel2 = new javax.swing.JPanel();
+        jumlah_buku_hilang = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        jumlah_buku_rusak = new javax.swing.JLabel();
+        jPanel4 = new javax.swing.JPanel();
+        jumlah_buku_terpinjam = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jTextField1 = new javax.swing.JTextField();
+        jTextField2 = new javax.swing.JTextField();
+        jComboBox1 = new javax.swing.JComboBox<>();
 
         jList1.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
@@ -124,96 +536,345 @@ public class itembuku extends javax.swing.JPanel {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
-        jLabel1.setText("halaman Menu Item");
+        jLabel1.setText("Menu Kode Buku");
 
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+        searchstatus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+                searchstatusActionPerformed(evt);
             }
         });
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "filter by name and kode buku", " " }));
+        filterbynameandkodebuku.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "filter by name and kode buku", " " }));
 
-        jButton1.setText("cari");
+        cari.setText("cari");
+        cari.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cariActionPerformed(evt);
+            }
+        });
 
-        id_user.setText("jLabel2");
+        id_user.setText("id_user");
 
-        username.setText("jLabel2");
+        username.setText("username");
 
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Filter by status", " " }));
+        filterbystatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Filter by status", " " }));
 
-        jButton2.setText("Export Excel");
+        button_excel.setText("Export Excel");
+        button_excel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                button_excelActionPerformed(evt);
+            }
+        });
+
+        save.setText("Simpan");
+        save.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveActionPerformed(evt);
+            }
+        });
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+
+        jumlah_buku_tersedia.setText("buku yg tersedia");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jumlah_buku_tersedia)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(33, 33, 33)
+                .addComponent(jumlah_buku_tersedia)
+                .addContainerGap(23, Short.MAX_VALUE))
+        );
+
+        jPanel2.setBackground(new java.awt.Color(255, 255, 255));
+
+        jumlah_buku_hilang.setText("Hilang");
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(22, 22, 22)
+                .addComponent(jumlah_buku_hilang)
+                .addContainerGap(43, Short.MAX_VALUE))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(32, 32, 32)
+                .addComponent(jumlah_buku_hilang)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jPanel3.setBackground(new java.awt.Color(255, 255, 255));
+
+        jumlah_buku_rusak.setText("Rusak");
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(29, 29, 29)
+                .addComponent(jumlah_buku_rusak)
+                .addContainerGap(35, Short.MAX_VALUE))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jumlah_buku_rusak)
+                .addGap(25, 25, 25))
+        );
+
+        jPanel4.setBackground(new java.awt.Color(255, 255, 255));
+
+        jumlah_buku_terpinjam.setText("Terpinjam");
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGap(20, 20, 20)
+                .addComponent(jumlah_buku_terpinjam)
+                .addContainerGap(23, Short.MAX_VALUE))
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jumlah_buku_terpinjam)
+                .addGap(25, 25, 25))
+        );
+
+        jButton1.setText("refresh");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jLabel2.setText("name buku:");
+
+        jLabel3.setText("Kode Buku:");
+
+        jLabel4.setText("Status");
+
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Tersedia", "Rusak", "Hilang", " " }));
+        jComboBox1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jComboBox1MouseClicked(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(username)
-                    .addComponent(id_user))
-                .addGap(84, 84, 84))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(username))
                     .addComponent(jScrollPane1)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 438, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 140, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1)
-                            .addComponent(jButton2))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(searchstatus, javax.swing.GroupLayout.PREFERRED_SIZE, 438, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(filterbystatus, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(filterbynameandkodebuku, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(cari, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(id_user))
+                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(button_excel, javax.swing.GroupLayout.PREFERRED_SIZE, 273, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(save, javax.swing.GroupLayout.PREFERRED_SIZE, 308, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addGap(94, 94, 94)
+                                .addComponent(jLabel4))
+                            .addComponent(jLabel3)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(jTextField2, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jTextField1, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(42, 42, 42)
+                                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel1)
-                .addGap(29, 29, 29)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(29, 29, 29)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(searchstatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(filterbynameandkodebuku, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(cari)
+                            .addComponent(filterbystatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButton1)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(id_user)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(username)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel4))
+                .addGap(7, 7, 7)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1)
-                    .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 36, Short.MAX_VALUE)
-                .addComponent(jButton2)
-                .addGap(13, 13, 13)
-                .addComponent(id_user)
-                .addGap(13, 13, 13)
-                .addComponent(username)
-                .addContainerGap())
+                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(button_excel)
+                    .addComponent(save))
+                .addGap(281, 281, 281))
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+    private void searchstatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchstatusActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField1ActionPerformed
+    }//GEN-LAST:event_searchstatusActionPerformed
+
+    private void cariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cariActionPerformed
+        cariData();
+    }//GEN-LAST:event_cariActionPerformed
+
+    private void button_excelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_excelActionPerformed
+        exportToExcel();
+    }//GEN-LAST:event_button_excelActionPerformed
+
+    private void saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveActionPerformed
+int i = jTable1.getSelectedRow();
+if (i == -1) {
+    JOptionPane.showMessageDialog(null, "Pilih data terlebih dahulu!");
+    return;
+}
+
+int id = Integer.parseInt(
+    jTable1.getValueAt(i, 0).toString()
+);
+
+String status = jComboBox1.getSelectedItem().toString();
+
+try {
+    String sql = "UPDATE buku_item SET status=? WHERE bukuitem_id=?";
+    pst = conn.prepareStatement(sql);
+    pst.setString(1, status);
+    pst.setInt(2, id);
+
+    int hasil = pst.executeUpdate();
+
+    if (hasil > 0) {
+        JOptionPane.showMessageDialog(null, "Status berhasil disimpan");
+    } else {
+        JOptionPane.showMessageDialog(null, "Data tidak berubah");
+    }
+
+} catch (Exception e) {
+    JOptionPane.showMessageDialog(null, e.getMessage());
+}
+
+getData();
+bersih();
+    }//GEN-LAST:event_saveActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        pilihData();
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void jComboBox1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jComboBox1MouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jComboBox1MouseClicked
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        getData();        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton1ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton button_excel;
+    private javax.swing.JButton cari;
+    private javax.swing.JComboBox<String> filterbynameandkodebuku;
+    private javax.swing.JComboBox<String> filterbystatus;
     private javax.swing.JLabel id_user;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JComboBox<String> jComboBox1;
-    private javax.swing.JComboBox<String> jComboBox2;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JList<String> jList1;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField1;
+    private javax.swing.JTextField jTextField2;
+    private javax.swing.JLabel jumlah_buku_hilang;
+    private javax.swing.JLabel jumlah_buku_rusak;
+    private javax.swing.JLabel jumlah_buku_terpinjam;
+    private javax.swing.JLabel jumlah_buku_tersedia;
+    private javax.swing.JButton save;
+    private javax.swing.JTextField searchstatus;
     private javax.swing.JLabel username;
     // End of variables declaration//GEN-END:variables
 }
